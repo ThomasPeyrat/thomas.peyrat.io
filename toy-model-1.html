@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cyber MSPD / Hawkes Visualizer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #030712;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 10px;
+      background: radial-gradient(circle at top, #020617 0, #000 60%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      font-size: 16px; /* taille générale plus grande */
+    }
+
+    #cyber-mspd {
+      width: 100%;
+      max-width: 960px;
+      background: linear-gradient(135deg, #030712, #020617);
+      border-radius: 20px;
+      padding: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+    }
+
+    .cm-header {
+      margin-bottom: 12px;
+    }
+
+    .cm-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #e0f2fe;
+      background: radial-gradient(circle at top left,
+        rgba(56, 189, 248, 0.18),
+        rgba(15, 23, 42, 0.9)
+      );
+    }
+
+    .cm-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f97316;
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.9);
+    }
+
+    .cm-title {
+      margin: 8px 0 6px;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #f9fafb;
+    }
+
+    .cm-subtitle {
+      margin: 0;
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 680px;
+      line-height: 1.5;
+    }
+
+    .cm-formula {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Courier New", monospace;
+      font-size: 14px;
+      color: #e5e7eb;
+      line-height: 1.4;
+      overflow-x: auto;
+    }
+
+    .cm-formula span.sub {
+      vertical-align: sub;
+      font-size: 0.85em;
+    }
+
+    .cm-badges {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .cm-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      color: #d1d5db;
+      background: rgba(15, 23, 42, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .cm-controls {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.4fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 780px) {
+      body { padding: 16px 6px; }
+      #cyber-mspd { padding: 14px; }
+      .cm-controls { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .cm-panel {
+      background: var(--panel);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+    }
+
+    .cm-panel h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #cbd5f5;
+    }
+
+    .cm-slider-group {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .cm-slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .cm-slider-label-row code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Courier New", monospace;
+      font-size: 12px;
+      color: #e5e7eb;
+    }
+
+    .cm-slider-value {
+      font-size: 12px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #020617;
+      border: 1px solid #374151;
+      min-width: 46px;
+      text-align: right;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      margin-top: 3px;
+      height: 5px;
+      border-radius: 999px;
+      background: #1e293b;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #020617;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+      cursor: pointer;
+      margin-top: -5px;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #38bdf8;
+      border: 2px solid #020617;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+      cursor: pointer;
+    }
+
+    .cm-legend {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .cm-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cm-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .cm-btn-row {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .cm-btn {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: var(--text);
+      font-size: 14px;
+      padding: 7px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cm-btn-primary {
+      background: linear-gradient(90deg, #38bdf8, #22c55e);
+      border-color: transparent;
+      color: #0b1120;
+      font-weight: 500;
+    }
+
+    .cm-status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .cm-status-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+
+    .cm-status-dot.live {
+      background: #22c55e;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.9);
+    }
+
+    .cm-status-dot.paused {
+      background: #6b7280;
+    }
+
+    .cm-canvas-wrap {
+      margin-top: 10px;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      padding: 8px;
+    }
+
+    #cm-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      background: #020617;
+    }
+
+    .cm-caption {
+      margin-top: 8px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .cm-caption code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Courier New", monospace;
+      font-size: 12px;
+      background: #020617;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+    }
+
+    .cm-constraints span.ok {
+      color: #22c55e;
+    }
+
+    .cm-constraints span.bad {
+      color: #f97373;
+    }
+  </style>
+</head>
+<body>
+  <section id="cyber-mspd">
+    <header class="cm-header">
+      <div class="cm-pill">
+        <span class="cm-pill-dot"></span>
+        <span>Cyber MSPD demo</span>
+      </div>
+
+      <h2 class="cm-title">MSPD dynamics for cyber vulnerabilities and claims</h2>
+
+      <p class="cm-subtitle">
+        This interactive module illustrates a simplified two-dimensional
+        MSPD (Multivariate Self-exciting Process with Dependencies) used in
+        cyber-risk modeling. For further details on MSPDS <a href="https://arxiv.org/abs/2503.15958">Click Here</a>
+         and to learn more about 
+        vulnearabilities in cyber risk <a href="https://arxiv.org/abs/2311.15701">Click Here</a>.
+      </br>
+       We consider two marked components: vulnerabilities
+        (V) and claims (C). Each event carries a mark representing its severity,
+        sampled from a discrete distribution P(M=1)=0.6, P(M=2)=0.3, P(M=3)=0.1.
+        Marks enter multiplicatively through w(m)=m. Vulnerabilities self-excite
+        and also excite claims, while claims self-excite, producing clustered
+        dynamics consistent with event-driven cyber systems.
+      </p>
+
+      <div class="cm-formula">
+        λ<span class="sub">C</span>(t) = μ<span class="sub">C</span>
+        + ∑<span class="sub">s&lt;t</span>
+        [ α<span class="sub">cc</span> e<sup>−β<span class="sub">cc</span>(t−s)</sup> w(M<span class="sub">s</span><sup>C</sup>)
+        + α<span class="sub">vc</span> e<sup>−β<span class="sub">vc</span>(t−s)</sup> w(M<span class="sub">s</span><sup>V</sup>) ]
+        <br />
+        λ<span class="sub">V</span>(t) = μ<span class="sub">V</span>
+        + ∑<span class="sub">s&lt;t</span>
+        α<span class="sub">vv</span> e<sup>−β<span class="sub">vv</span>(t−s)</sup> w(M<span class="sub">s</span><sup>V</sup>) .
+      </div>
+
+      <div class="cm-badges">
+        <span class="cm-badge">MSPD</span>
+        <span class="cm-badge">Marked processes</span>
+        <span class="cm-badge">Cyber risk</span>
+        <span class="cm-badge">Cross-excitation</span>
+      </div>
+    </header>
+
+    <div class="cm-controls">
+      <div class="cm-panel">
+        <h3>Process & kernel parameters</h3>
+
+        <!-- Baselines -->
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>μ_C</code> baseline claims intensity</span>
+            <span id="cm-muc-val" class="cm-slider-value">0.10</span>
+          </div>
+          <input id="cm-muc" type="range" min="0.01" max="0.8" step="0.01" value="0.10" />
+        </div>
+
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>μ_V</code> baseline vulnerability intensity</span>
+            <span id="cm-muv-val" class="cm-slider-value">0.20</span>
+          </div>
+          <input id="cm-muv" type="range" min="0.01" max="1.0" step="0.01" value="0.20" />
+        </div>
+
+        <!-- Alphas -->
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>α_cc</code> claims self-excitation</span>
+            <span id="cm-acc-val" class="cm-slider-value">0.70</span>
+          </div>
+          <input id="cm-acc" type="range" min="0.05" max="1.5" step="0.05" value="0.70" />
+        </div>
+
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>α_vv</code> vulnerability self-excitation</span>
+            <span id="cm-avv-val" class="cm-slider-value">0.50</span>
+          </div>
+          <input id="cm-avv" type="range" min="0.05" max="1.5" step="0.05" value="0.50" />
+        </div>
+
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>α_vc</code> vuln → claims excitation</span>
+            <span id="cm-avc-val" class="cm-slider-value">0.90</span>
+          </div>
+          <input id="cm-avc" type="range" min="0.05" max="2.0" step="0.05" value="0.90" />
+        </div>
+
+        <!-- Betas -->
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>β_cc</code> decay of claims self-kernel</span>
+            <span id="cm-bcc-val" class="cm-slider-value">1.20</span>
+          </div>
+          <input id="cm-bcc" type="range" min="0.2" max="3.0" step="0.1" value="1.20" />
+        </div>
+
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>β_vv</code> decay of vuln self-kernel</span>
+            <span id="cm-bvv-val" class="cm-slider-value">1.00</span>
+          </div>
+          <input id="cm-bvv" type="range" min="0.2" max="3.0" step="0.1" value="1.00" />
+        </div>
+
+        <div class="cm-slider-group">
+          <div class="cm-slider-label-row">
+            <span><code>β_vc</code> decay of vuln → claims kernel</span>
+            <span id="cm-bvc-val" class="cm-slider-value">1.50</span>
+          </div>
+          <input id="cm-bvc" type="range" min="0.2" max="3.0" step="0.1" value="1.50" />
+        </div>
+
+        <p id="cm-constraints" class="cm-caption cm-constraints" style="margin-top:8px;">
+          <!-- rempli dynamiquement -->
+        </p>
+
+        <div class="cm-legend">
+          <div class="cm-legend-item">
+            <span class="cm-color-dot" style="background:#f97373"></span>
+            <span>Claims (loss severity mark)</span>
+          </div>
+          <div class="cm-legend-item">
+            <span class="cm-color-dot" style="background:#38bdf8"></span>
+            <span>Vulnerabilities (criticality mark)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cm-panel">
+        <h3>Simulation</h3>
+        <div class="cm-btn-row">
+          <button id="cm-play" class="cm-btn cm-btn-primary">
+            <span>▶</span><span>Play</span>
+          </button>
+          <button id="cm-reset" class="cm-btn">
+            <span>↺</span><span>Reset</span>
+          </button>
+          <span id="cm-status" class="cm-status">
+            <span class="cm-status-dot paused"></span>Paused
+          </span>
+        </div>
+        <p class="cm-caption" style="margin-top:8px;">
+          Each dot is a marked event. Bigger dots correspond to higher criticality
+          (vulnerabilities) or larger losses (claims). Intensities λ<sub>C</sub> and
+          λ<sub>V</sub> are driven by exponential kernels with separate amplitudes
+          and decays for self- and cross-excitation.
+        </p>
+      </div>
+    </div>
+
+    <div class="cm-canvas-wrap">
+      <canvas id="cm-canvas" width="900" height="380"></canvas>
+    </div>
+
+    <p class="cm-caption">
+      Toy stability conditions (for this simple parametrisation) suggest keeping
+      <code>α_cc &lt; β_cc</code>, <code>α_vv &lt; β_vv</code> and
+      <code>α_vc &lt; β_vc</code>, but those aren't the "true" stability conditions associate to this model.
+    </p>
+
+    
+  <footer class="footer">
+  <small><small>Content and visualizations © 2025 Thomas Peyrat. Do not reproduce without permission</small></small> .
+  </footer>
+  </section>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById("cm-canvas");
+      const ctx = canvas.getContext("2d");
+
+      // 0 = claims (C), 1 = vulnerabilities (V)
+      const dimCount = 2;
+      const dimNames = ["Claims", "Vulnerabilities"];
+      const colors = ["#f97373", "#38bdf8"];
+
+      // Baseline intensities (from sliders)
+      const mucSlider = document.getElementById("cm-muc");
+      const muvSlider = document.getElementById("cm-muv");
+      const mucVal = document.getElementById("cm-muc-val");
+      const muvVal = document.getElementById("cm-muv-val");
+
+      // Alphas
+      const accSlider = document.getElementById("cm-acc");
+      const avvSlider = document.getElementById("cm-avv");
+      const avcSlider = document.getElementById("cm-avc");
+      const accVal = document.getElementById("cm-acc-val");
+      const avvVal = document.getElementById("cm-avv-val");
+      const avcVal = document.getElementById("cm-avc-val");
+
+      // Betas
+      const bccSlider = document.getElementById("cm-bcc");
+      const bvvSlider = document.getElementById("cm-bvv");
+      const bvcSlider = document.getElementById("cm-bvc");
+      const bccVal = document.getElementById("cm-bcc-val");
+      const bvvVal = document.getElementById("cm-bvv-val");
+      const bvcVal = document.getElementById("cm-bvc-val");
+
+      const constraintsEl = document.getElementById("cm-constraints");
+
+      const playBtn = document.getElementById("cm-play");
+      const resetBtn = document.getElementById("cm-reset");
+      const statusEl = document.getElementById("cm-status");
+
+      // Sim state
+      let lambdas = [0.1, 0.2];
+      let time = 0;
+      let events = [];          // {t, dim, mark}
+      let intensityHistory = []; // {t, lambdas: [λC, λV]}
+
+      // Kernel contributions
+      let h_cc = 0; // self kernel claims
+      let h_vv = 0; // self kernel vuln
+      let h_vc = 0; // vuln → claims
+
+      let running = false;
+      let timerId = null;
+
+      // Layout
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const leftMargin = 50;
+      const rightMargin = 10;
+      const topPad = 20;
+      const intensityHeight = 190;
+      const gap = 6;
+      const eventsHeight = H - topPad - intensityHeight - gap - 26;
+
+      const windowSize = 30.0; // visible time window
+
+      // Accessors
+      function getMuC() { return parseFloat(mucSlider.value); }
+      function getMuV() { return parseFloat(muvSlider.value); }
+
+      function getAcc() { return parseFloat(accSlider.value); }
+      function getAvv() { return parseFloat(avvSlider.value); }
+      function getAvc() { return parseFloat(avcSlider.value); }
+
+      function getBcc() { return parseFloat(bccSlider.value); }
+      function getBvv() { return parseFloat(bvvSlider.value); }
+      function getBvc() { return parseFloat(bvcSlider.value); }
+
+      function updateSliderLabels() {
+        mucVal.textContent = getMuC().toFixed(2);
+        muvVal.textContent = getMuV().toFixed(2);
+        accVal.textContent = getAcc().toFixed(2);
+        avvVal.textContent = getAvv().toFixed(2);
+        avcVal.textContent = getAvc().toFixed(2);
+        bccVal.textContent = getBcc().toFixed(2);
+        bvvVal.textContent = getBvv().toFixed(2);
+        bvcVal.textContent = getBvc().toFixed(2);
+      }
+
+      function updateConstraints() {
+        const condCc = getAcc() < getBcc();
+        const condVv = getAvv() < getBvv();
+        const condVc = getAvc() < getBvc();
+        constraintsEl.innerHTML =
+          'Stability hints (toy conditions): ' +
+          '<span class="' + (condCc ? 'ok' : 'bad') + '">α_cc ' + (condCc ? '&lt;' : '≥') + ' β_cc</span>' +
+          ' · ' +
+          '<span class="' + (condVv ? 'ok' : 'bad') + '">α_vv ' + (condVv ? '&lt;' : '≥') + ' β_vv</span>' +
+          ' · ' +
+          '<span class="' + (condVc ? 'ok' : 'bad') + '">α_vc ' + (condVc ? '&lt;' : '≥') + ' β_vc</span>';
+      }
+
+      function setStatus() {
+        const dotClass = running ? "cm-status-dot live" : "cm-status-dot paused";
+        statusEl.innerHTML =
+          '<span class="' + dotClass + '"></span>' + (running ? "Live" : "Paused");
+      }
+
+      function initProcess() {
+        time = 0;
+        h_cc = 0;
+        h_vv = 0;
+        h_vc = 0;
+        lambdas = [getMuC(), getMuV()];
+        events = [];
+        intensityHistory = [];
+        render();
+      }
+
+      function sampleMark() {
+        const r = Math.random();
+        if (r < 0.6) return 1;
+        if (r < 0.9) return 2;
+        return 3;
+      }
+
+      function markWeight(m) {
+        return m; // 1, 2, 3
+      }
+
+      function simulationStep(dt) {
+        const muC = getMuC();
+        const muV = getMuV();
+
+        const bcc = getBcc();
+        const bvv = getBvv();
+        const bvc = getBvc();
+
+        const acc = getAcc();
+        const avv = getAvv();
+        const avc = getAvc();
+
+        // 1) decay of kernel contributions
+        h_cc *= Math.exp(-bcc * dt);
+        h_vv *= Math.exp(-bvv * dt);
+        h_vc *= Math.exp(-bvc * dt);
+
+        // 2) update intensities from current contributions
+        let lambdaC = muC + h_cc + h_vc;
+        let lambdaV = muV + h_vv;
+
+        lambdaC = Math.max(lambdaC, 0.01);
+        lambdaV = Math.max(lambdaV, 0.01);
+
+        lambdas[0] = lambdaC;
+        lambdas[1] = lambdaV;
+
+        // 3) generate events via thinning approximation
+        const newEvents = [];
+        for (let k = 0; k < dimCount; k++) {
+          const lam = Math.max(lambdas[k], 1e-4);
+          const p = 1 - Math.exp(-lam * dt);
+          if (Math.random() < p) {
+            const mark = sampleMark();
+            const ev = { t: time, dim: k, mark: mark };
+            newEvents.push(ev);
+            events.push(ev);
+          }
+        }
+
+        // 4) update kernel contributions with jumps
+        newEvents.forEach(ev => {
+          const m = markWeight(ev.mark);
+          if (ev.dim === 0) {
+            // claims self-excitation
+            h_cc += acc * m;
+          } else if (ev.dim === 1) {
+            // vulnerabilities self + cross onto claims
+            h_vv += avv * m;
+            h_vc += avc * m;
+          }
+        });
+
+        // 5) store history
+        intensityHistory.push({ t: time, lambdas: lambdas.slice() });
+
+        const cutoff = time - windowSize;
+        while (intensityHistory.length && intensityHistory[0].t < cutoff) {
+          intensityHistory.shift();
+        }
+        while (events.length && events[0].t < cutoff) {
+          events.shift();
+        }
+
+        time += dt;
+      }
+
+      function computeMaxLambda() {
+        let maxL = 0;
+        intensityHistory.forEach(pt => {
+          for (let k = 0; k < dimCount; k++) {
+            if (pt.lambdas[k] > maxL) maxL = pt.lambdas[k];
+          }
+        });
+        if (maxL <= 0) maxL = Math.max(getMuC(), getMuV()) * 3;
+        return maxL * 1.2;
+      }
+
+      function drawAxes(maxLambda) {
+        ctx.clearRect(0, 0, W, H);
+
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const topY = topPad;
+        const bottomY = topPad + intensityHeight;
+
+        // intensity panel
+        ctx.strokeStyle = "#1f2937";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x0 - 10, topY - 8, x1 - x0 + 20, intensityHeight + 16);
+
+        // grid + y labels
+        const gridLines = 4;
+        for (let i = 0; i <= gridLines; i++) {
+          const frac = i / gridLines;
+          const y = bottomY - frac * intensityHeight;
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.strokeStyle = "#111827";
+          ctx.stroke();
+
+          const val = frac * maxLambda;
+          ctx.fillStyle = "#9ca3af";
+          ctx.font = "12px system-ui";
+          ctx.textAlign = "right";
+          ctx.fillText(val.toFixed(2), x0 - 12, y + 3);
+        }
+
+        // events panel
+        const eventsTop = bottomY + gap;
+        const eventsBottom = eventsTop + eventsHeight;
+        ctx.strokeStyle = "#1f2937";
+        ctx.strokeRect(x0 - 10, eventsTop - 8, x1 - x0 + 20, eventsHeight + 16);
+
+        // time axis
+        ctx.beginPath();
+        ctx.moveTo(x0, eventsBottom);
+        ctx.lineTo(x1, eventsBottom);
+        ctx.strokeStyle = "#374151";
+        ctx.stroke();
+
+        const tMin = Math.max(0, time - windowSize);
+        const tMax = time;
+        const ticks = 5;
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "12px system-ui";
+        ctx.textAlign = "center";
+        for (let i = 0; i <= ticks; i++) {
+          const frac = i / ticks;
+          const x = x0 + frac * (x1 - x0);
+          const tVal = tMin + frac * (tMax - tMin || 1);
+          ctx.beginPath();
+          ctx.moveTo(x, eventsBottom);
+          ctx.lineTo(x, eventsBottom + 4);
+          ctx.strokeStyle = "#374151";
+          ctx.stroke();
+          ctx.fillText(tVal.toFixed(1), x, eventsBottom + 16);
+        }
+
+        // two bands: claims, vulnerabilities
+        const bandH = eventsHeight / 2;
+        for (let k = 0; k < 2; k++) {
+          const y = eventsTop + bandH * (k + 0.5);
+          ctx.fillStyle = colors[k];
+          ctx.textAlign = "left";
+          ctx.font = "13px system-ui";
+          ctx.fillText(dimNames[k], 8, y + 4);
+
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.strokeStyle = "#111827";
+          ctx.stroke();
+        }
+      }
+
+      function drawIntensities(maxLambda) {
+        if (intensityHistory.length < 2) return;
+
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const bottomY = topPad + intensityHeight;
+        const tMin = Math.max(0, time - windowSize);
+        const tMax = time;
+
+        for (let k = 0; k < dimCount; k++) {
+          ctx.beginPath();
+          let started = false;
+          intensityHistory.forEach(pt => {
+            if (pt.t < tMin || pt.t > tMax) return;
+            const frac = (pt.t - tMin) / (tMax - tMin || 1);
+            const x = x0 + frac * (x1 - x0);
+            const lambda = Math.max(0, pt.lambdas[k]);
+            const y = bottomY - (lambda / (maxLambda || 1e-6)) * intensityHeight;
+            if (!started) {
+              ctx.moveTo(x, y);
+              started = true;
+            } else {
+              ctx.lineTo(x, y);
+            }
+          });
+          ctx.strokeStyle = colors[k];
+          ctx.lineWidth = 1.4;
+          ctx.stroke();
+        }
+      }
+
+      function drawEvents() {
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const eventsTop = topPad + intensityHeight + gap;
+        const eventsBottom = eventsTop + eventsHeight;
+        const bandH = eventsHeight / 2;
+        const tMin = Math.max(0, time - windowSize);
+        const tMax = time;
+
+        events.forEach(ev => {
+          if (ev.t < tMin || ev.t > tMax) return;
+          const frac = (ev.t - tMin) / (tMax - tMin || 1);
+          const x = x0 + frac * (x1 - x0);
+          const bandIndex = ev.dim === 0 ? 0 : 1;
+          const y = eventsTop + bandH * (bandIndex + 0.5);
+
+          const r = 3 + 2 * (ev.mark - 1);
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = colors[ev.dim];
+          ctx.fill();
+          ctx.strokeStyle = "#020617";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+      }
+
+      function render() {
+        const maxLambda = computeMaxLambda();
+        drawAxes(maxLambda);
+        drawIntensities(maxLambda);
+        drawEvents();
+      }
+
+      function startSimulation() {
+        if (running) return;
+        running = true;
+        setStatus();
+        const dt = 0.05;
+        timerId = setInterval(function () {
+          for (let i = 0; i < 4; i++) {
+            simulationStep(dt);
+          }
+          render();
+        }, 60);
+      }
+
+      function stopSimulation() {
+        running = false;
+        setStatus();
+        if (timerId !== null) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+      }
+
+      // UI events
+      playBtn.addEventListener("click", function () {
+        if (!running) {
+          playBtn.innerHTML = "<span>⏸</span><span>Pause</span>";
+          startSimulation();
+        } else {
+          playBtn.innerHTML = "<span>▶</span><span>Play</span>";
+          stopSimulation();
+        }
+      });
+
+      resetBtn.addEventListener("click", function () {
+        stopSimulation();
+        playBtn.innerHTML = "<span>▶</span><span>Play</span>";
+        initProcess();
+      });
+
+      [
+        mucSlider, muvSlider,
+        accSlider, avvSlider, avcSlider,
+        bccSlider, bvvSlider, bvcSlider
+      ].forEach(function (slider) {
+        slider.addEventListener("input", function () {
+          updateSliderLabels();
+          updateConstraints();
+        });
+        slider.addEventListener("change", function () {
+          // on recale juste les intensités sur les baselines + contributions courantes
+          lambdas = [getMuC(), getMuV()];
+        });
+      });
+
+      // init
+      updateSliderLabels();
+      updateConstraints();
+      initProcess();
+      setStatus();
+    })();
+  </script>
+
+</body>
+</html>

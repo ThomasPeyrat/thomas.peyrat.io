@@ -1,0 +1,367 @@
+/* assets/main.css */
+
+/* ---------- RESET & BASE ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
+  font-size: 16.5px;
+  line-height: 1.7;
+  color: #0f172a; /* slate-900 */
+  background: #f3f4f6; /* slate-100 */
+}
+
+/* Layout container */
+
+.site {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 24px 16px 56px;
+}
+
+/* ---------- HEADER / NAV ---------- */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(248, 250, 252, 0.96); /* slate-50 */
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.site-header-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.site-brand {
+  display: flex;
+  flex-direction: column;
+}
+
+.site-name {
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  color: #0f172a;
+}
+
+.site-tagline {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.9rem;
+}
+
+.site-nav a {
+  text-decoration: none;
+  color: #475569;
+  padding: 6px 11px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  transition: all 0.15s ease-out;
+}
+
+.site-nav a:hover {
+  color: #0f172a;
+  border-color: rgba(148, 163, 184, 0.7);
+  background: #e5edf8;
+}
+
+.site-nav a.nav-current {
+  background: #2563eb;
+  color: #f9fafb;
+}
+
+/* ---------- HERO (HOME) ---------- */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.8fr);
+  gap: 32px;
+  align-items: center;
+  margin-top: 32px;
+  margin-bottom: 40px;
+}
+
+.hero-photo {
+  width: 220px;
+  height: 220px;
+  border-radius: 999px;
+  overflow: hidden;
+  border: 3px solid #e5e7eb;
+  box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+  margin: 0 auto;
+}
+
+.hero-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.hero-text-kicker {
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin-bottom: 10px;
+}
+
+.hero-name {
+  font-size: clamp(2.2rem, 3.2vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin: 0 0 4px;
+  color: #0f172a;
+}
+
+.hero-role {
+  font-size: 1.02rem;
+  color: #64748b;
+  margin-bottom: 14px;
+}
+
+.hero-description {
+  font-size: 0.98rem;
+  color: #334155;
+  margin-bottom: 18px;
+  max-width: 36rem;
+}
+
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.hero-tag {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #e5edf8;
+  color: #2563eb;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: #f9fafb;
+  border-color: #2563eb;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: #1e293b;
+  border-color: #cbd5e1;
+}
+
+/* ---------- SECTIONS ---------- */
+
+.section {
+  margin-bottom: 48px;
+}
+
+.section-header {
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: 1rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #64748b;
+  margin: 0 0 4px;
+}
+
+.section-subtitle {
+  font-size: 0.92rem;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.section-body {
+  font-size: 0.96rem;
+  color: #0f172a;
+}
+
+/* Cards grid */
+
+.grid {
+  display: grid;
+  gap: 18px;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+/* Cards */
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.03);
+}
+
+.card-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+  color: #0f172a;
+}
+
+.card-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.card-text {
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+/* MSPD highlight on home */
+
+.mspd-highlight {
+  background: #eff6ff;
+  border-radius: 16px;
+  padding: 14px 16px;
+  border: 1px solid #bfdbfe;
+  font-size: 0.92rem;
+  color: #1e3a8a;
+  margin-bottom: 14px;
+}
+
+/* Publication list */
+
+.pub-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pub-item {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.pub-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.pub-meta {
+  font-size: 0.86rem;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* Simple page header (for subpages) */
+
+.page-header {
+  margin-top: 32px;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 1.7rem;
+  font-weight: 650;
+  margin: 0 0 6px;
+  color: #0f172a;
+}
+
+.page-subtitle {
+  font-size: 0.98rem;
+  color: #64748b;
+}
+
+/* Footer (optionnel) */
+
+.site-footer {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid #e2e8f0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+}
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 768px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr);
+    text-align: left;
+  }
+
+  .hero-photo {
+    width: 190px;
+    height: 190px;
+  }
+
+  .site-header-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-nav {
+    justify-content: flex-start;
+  }
+}
+
+.footer {
+  margin-top: 60px;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #555;        /* texte discret */
+  border-top: 1px solid #e5e5e5;
+}

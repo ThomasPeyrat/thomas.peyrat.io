@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MSPD Cyber Stress Testing Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #020617;
+      --panel: #030712;
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px 10px;
+      background: radial-gradient(circle at top, #020617 0, #000 60%);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      font-size: 16px; /* ← taille générale plus grande */
+    }
+
+    #mspd-stress {
+      width: 100%;
+      max-width: 980px;
+      background: linear-gradient(135deg, #030712, #020617);
+      border-radius: 20px;
+      padding: 18px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+    }
+
+    .ms-header {
+      margin-bottom: 10px;
+    }
+
+    .ms-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #e0f2fe;
+      background: radial-gradient(circle at top left,
+        rgba(56, 189, 248, 0.18),
+        rgba(15, 23, 42, 0.9)
+      );
+    }
+
+    .ms-pill-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f97316;
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.9);
+    }
+
+    .ms-title {
+      margin: 8px 0 6px;
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #f9fafb;
+    }
+
+    .ms-subtitle {
+      margin: 0;
+      font-size: 15px;
+      color: var(--muted);
+      max-width: 760px;
+      line-height: 1.5;
+    }
+
+    .ms-formula {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #020617;
+      border: 1px solid #1f2937;
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Courier New", monospace;
+      font-size: 16px;
+      color: #e5e7eb;
+      line-height: 1.4;
+      overflow-x: auto;
+    }
+
+    .ms-formula span.sub {
+      vertical-align: sub;
+      font-size: 0.85em;
+    }
+
+    .ms-badges {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 11px;
+    }
+
+    .ms-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      color: #d1d5db;
+      background: rgba(15, 23, 42, 0.9);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .ms-controls {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1.4fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 780px) {
+      body { padding: 16px 6px; }
+      #mspd-stress { padding: 14px; }
+      .ms-controls { grid-template-columns: minmax(0, 1fr); }
+    }
+
+    .ms-panel {
+      background: var(--panel);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+    }
+
+    .ms-panel h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #cbd5f5;
+    }
+
+    .ms-instructions {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .ms-instructions code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Courier New", monospace;
+      font-size: 12px;
+      background: #020617;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+    }
+
+    .ms-legend {
+      margin-top: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .ms-legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ms-color-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .ms-btn-row {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .ms-btn {
+      border-radius: 999px;
+      border: 1px solid #4b5563;
+      background: #020617;
+      color: #e5e7eb;
+      font-size: 14px;
+      padding: 7px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .ms-btn-primary {
+      background: linear-gradient(90deg, #38bdf8, #22c55e);
+      border-color: transparent;
+      color: #0b1120;
+      font-weight: 500;
+    }
+
+    .ms-status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .ms-canvas-wrap {
+      margin-top: 12px;
+      background: #020617;
+      border-radius: 16px;
+      border: 1px solid #1f2937;
+      padding: 8px;
+    }
+
+    #ms-canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 10px;
+      background: #020617;
+    }
+
+    .ms-caption {
+      margin-top: 10px;
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .ms-caption code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+        Consolas, "Courier New", monospace;
+      font-size: 12px;
+      background: #020617;
+      padding: 2px 7px;
+      border-radius: 999px;
+      border: 1px solid #374151;
+    }
+
+    .ms-teaser {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #e5e7eb;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <section id="mspd-stress">
+    <header class="ms-header">
+      <div class="ms-pill">
+        <span class="ms-pill-dot"></span>
+        <span>MSPD stress testing demo</span>
+      </div>
+      <h2 class="ms-title">Scenario-based stress testing of a cyber MSPD</h2>
+      <p class="ms-subtitle">
+        We consider a cyber portfolio driven by vulnerability disclosures and loss events.
+        Stress testing
+        consists in injecting an adverse scenario (e.g., a cluster of critical
+        vulnerabilities and large claims) and quantifying how key risk quantities
+        such as <strong>expected surplus</strong> and its variability shift under
+        this scenario. 
+      </br>This widget illustrates the pathwise effect of such a
+        scenario on a simplified two-dimensional MSPD (Multivariate Self-exciting
+        Process with Dependencies) for vulnerabilities (V) and claims (C).
+      </p>
+
+      <div class="ms-formula">
+        λ<span class="sub">C</span>(t) = μ<span class="sub">C</span>
+        + ∑<span class="sub">s&lt;t</span>
+        [ α<span class="sub">cc</span> e<sup>−β<span class="sub">cc</span>(t−s)</sup> w(M<span class="sub">s</span><sup>C</sup>)
+        + α<span class="sub">vc</span> e<sup>−β<span class="sub">vc</span>(t−s)</sup> w(M<span class="sub">s</span><sup>V</sup>) ]
+        <br />
+        λ<span class="sub">V</span>(t) = μ<span class="sub">V</span>
+        + ∑<span class="sub">s&lt;t</span>
+        α<span class="sub">vv</span> e<sup>−β<span class="sub">vv</span>(t−s)</sup> w(M<span class="sub">s</span><sup>V</sup>) ,
+      </div>
+
+      <p class="ms-subtitle" style="margin-top:6px;">
+        In the toy model below, marks represent vulnerability criticality or claim
+        severity and follow a discrete distribution
+        <code>P(M=1)=0.6</code>, <code>P(M=2)=0.3</code>,
+        <code>P(M=3)=0.1</code>; they enter kernels multiplicatively via
+        <code>w(m)=m</code>. The widget focuses on <em>sample paths</em> of
+        intensities; the accompanying research derives closed-form expressions
+        for the corresponding stressed expectations and variances of actuarial
+        quantities (e.g. surplus).
+      </br>
+        For further details on MSPDS <a href="https://arxiv.org/abs/2503.15958">Click Here</a>
+         and to learn more about 
+        vulnearabilities in cyber risk <a href="https://arxiv.org/abs/2311.15701">Click Here</a>.
+      </p>
+
+      <div class="ms-badges">
+        <span class="ms-badge">MSPD</span>
+        <span class="ms-badge">Scenario stress testing</span>
+        <span class="ms-badge">Cyber risk</span>
+        <span class="ms-badge">Surplus analytics</span>
+      </div>
+    </header>
+
+    <div class="ms-controls">
+      <div class="ms-panel">
+        <h3>1. Build a scenario on [0, T]</h3>
+        <p class="ms-instructions">
+          First, specify a deterministic scenario on the time window
+          <code>[0, T]</code> by clicking in the <strong>events panel</strong>
+          (bottom part of the plot). Clicking on the <strong>Claims</strong> band
+          adds a claim event; clicking on the <strong>Vulnerabilities</strong> band
+          adds a vulnerability event. Each scenario event is treated as a marked
+          jump with medium severity <code>M = 2</code>. Endogenous MSPD events use
+          random marks sampled from
+          <code>P(M=1)=0.6</code>, <code>P(M=2)=0.3</code>,
+          <code>P(M=3)=0.1</code>, with <code>w(m)=m</code>.
+        </p>
+
+        <div class="ms-legend">
+          <div class="ms-legend-item">
+            <span class="ms-color-dot" style="background:#f97373"></span>
+            <span>Claims (C)</span>
+          </div>
+          <div class="ms-legend-item">
+            <span class="ms-color-dot" style="background:#38bdf8"></span>
+            <span>Vulnerabilities (V)</span>
+          </div>
+          <div class="ms-legend-item">
+            <span class="ms-color-dot" style="background:#f97373; border:2px solid #fbbf24;"></span>
+            <span>Scenario events</span>
+          </div>
+        </div>
+
+        <div class="ms-btn-row">
+          <button id="ms-clear" class="ms-btn">
+            <span>🧹</span><span>Clear scenario</span>
+          </button>
+          <span class="ms-status" id="ms-scenario-status">
+            0 scenario events
+          </span>
+        </div>
+      </div>
+
+      <div class="ms-panel">
+        <h3>2. Generate baseline vs stressed paths</h3>
+        <p class="ms-instructions">
+          Kernel parameters are fixed for this demo:
+          <code>μ_C = 0.10</code>, <code>μ_V = 0.20</code>,
+          <code>α_cc = 0.7</code>, <code>α_vv = 0.5</code>,
+          <code>α_vc = 0.9</code>,
+          <code>β_cc = 1.6</code>, <code>β_vv = 1.3</code>,
+          <code>β_vc = 1.9</code>. Using a common random seed and mark sequence
+          for endogenous events, we simulate in real time a baseline MSPD path
+          (without the scenario) and a stressed path (with the deterministic
+          scenario events added on top).
+        </p>
+
+        <div class="ms-btn-row">
+          <button id="ms-simulate" class="ms-btn ms-btn-primary">
+            <span>⟳</span><span>Simulate with current scenario</span>
+          </button>
+          <span class="ms-status" id="ms-sim-status">
+            No simulation yet – define a scenario and click “Simulate”.
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ms-canvas-wrap">
+      <canvas id="ms-canvas" width="900" height="380"></canvas>
+    </div>
+
+    <p class="ms-caption">
+      The top panel shows λ<sub>C</sub>(t) and λ<sub>V</sub>(t): the baseline MSPD
+      (without scenario) appears as thin dashed lines, while the stressed path
+      (with the scenario) is displayed as solid lines. The bottom panel shows
+      events: endogenous MSPD events (small dots) and scenario events (larger
+      hollow markers). At the theoretical level, such scenarios induce explicit
+      shifts in the distribution of functionals like surplus or portfolio loss.
+    </p>
+
+    <p class="ms-teaser">
+      Stress-testing MSPDs — paper coming soon, with closed-form expressions for
+      scenario-shifted expectations and variances of key insurance quantities
+      (e.g. surplus).
+    </p>
+
+  <footer class="footer">
+  <small><small>Content and visualizations © 2025 Thomas Peyrat. Do not reproduce without permission</small></small> .
+  </footer>
+  </section>
+
+  <script>
+    (function () {
+      const canvas = document.getElementById("ms-canvas");
+      const ctx = canvas.getContext("2d");
+
+      // MSPD dimensions: 0 = Claims (C), 1 = Vulnerabilities (V)
+      const dimCount = 2;
+      const dimNames = ["Claims", "Vulnerabilities"];
+      const colors = ["#f97373", "#38bdf8"];
+
+      // Fixed parameters (decays augmenté)
+      const muC = 0.10;
+      const muV = 0.20;
+      const acc = 0.7;   // α_cc
+      const avv = 0.5;   // α_vv
+      const avc = 0.9;   // α_vc
+      const bcc = 1.6;   // β_cc (↑)
+      const bvv = 1.3;   // β_vv (↑)
+      const bvc = 1.9;   // β_vc (↑)
+
+      const T = 30.0;
+      const dt = 0.05;
+      const steps = Math.floor(T / dt);
+
+      // Layout
+      const W = canvas.width;
+      const H = canvas.height;
+      const leftMargin = 50;
+      const rightMargin = 10;
+      const topPad = 20;
+      const intensityHeight = 190;
+      const gap = 6;
+      const eventsHeight = H - topPad - intensityHeight - gap - 26;
+
+      // Scenario events: {t, dim}
+      let scenarioEvents = [];
+
+      // UI
+      const clearBtn = document.getElementById("ms-clear");
+      const simulateBtn = document.getElementById("ms-simulate");
+      const scenarioStatusEl = document.getElementById("ms-scenario-status");
+      const simStatusEl = document.getElementById("ms-sim-status");
+
+      // Animation state
+      let animTimerId = null;
+      let currentStep = 0;
+
+      // Coupling randoms
+      let randU = null;   // [dim][step]
+      let randM = null;   // [dim][step]
+
+      // Path state
+      let baseIntensities = [];    // {t, lambdaC, lambdaV}
+      let stressIntensities = [];
+      let baseEvents = [];         // {t, dim, mark}
+      let stressEvents = [];
+
+      // Kernel contributions for each path
+      let base_h_cc = 0, base_h_vv = 0, base_h_vc = 0;
+      let stress_h_cc = 0, stress_h_vv = 0, stress_h_vc = 0;
+
+      function updateScenarioStatus() {
+        const n = scenarioEvents.length;
+        if (n === 0) scenarioStatusEl.textContent = "0 scenario events";
+        else if (n === 1) scenarioStatusEl.textContent = "1 scenario event";
+        else scenarioStatusEl.textContent = n + " scenario events";
+      }
+
+      function sampleMarkOnce() {
+        const r = Math.random();
+        if (r < 0.6) return 1;
+        if (r < 0.9) return 2;
+        return 3;
+      }
+
+      function markWeight(m) { return m; }
+
+      function initRandoms() {
+        randU = [];
+        randM = [];
+        for (let k = 0; k < dimCount; k++) {
+          randU[k] = [];
+          randM[k] = [];
+          for (let j = 0; j < steps; j++) {
+            randU[k][j] = Math.random();
+            randM[k][j] = sampleMarkOnce();
+          }
+        }
+      }
+
+      function resetSimulationState() {
+        currentStep = 0;
+        baseIntensities = [];
+        stressIntensities = [];
+        baseEvents = [];
+        stressEvents = [];
+        base_h_cc = base_h_vv = base_h_vc = 0;
+        stress_h_cc = stress_h_vv = stress_h_vc = 0;
+      }
+
+      // Axes + grid
+      function drawAxes(maxLambda) {
+        ctx.clearRect(0, 0, W, H);
+
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const bottomY = topPad + intensityHeight;
+
+        // intensity panel
+        ctx.strokeStyle = "#1f2937";
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x0 - 10, topPad - 8, x1 - x0 + 20, intensityHeight + 16);
+
+        // grid + y labels
+        const gridLines = 4;
+        for (let i = 0; i <= gridLines; i++) {
+          const frac = i / gridLines;
+          const y = bottomY - frac * intensityHeight;
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.strokeStyle = "#111827";
+          ctx.stroke();
+
+          const val = frac * maxLambda;
+          ctx.fillStyle = "#9ca3af";
+          ctx.font = "12px system-ui";
+          ctx.textAlign = "right";
+          ctx.fillText(val.toFixed(2), x0 - 12, y + 3);
+        }
+
+        // events panel
+        const eventsTop = bottomY + gap;
+        const eventsBottom = eventsTop + eventsHeight;
+        ctx.strokeStyle = "#1f2937";
+        ctx.strokeRect(x0 - 10, eventsTop - 8, x1 - x0 + 20, eventsHeight + 16);
+
+        // time axis
+        ctx.beginPath();
+        ctx.moveTo(x0, eventsBottom);
+        ctx.lineTo(x1, eventsBottom);
+        ctx.strokeStyle = "#374151";
+        ctx.stroke();
+
+        const ticks = 5;
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "12px system-ui";
+        ctx.textAlign = "center";
+        for (let i = 0; i <= ticks; i++) {
+          const frac = i / ticks;
+          const x = x0 + frac * (x1 - x0);
+          const tVal = frac * T;
+          ctx.beginPath();
+          ctx.moveTo(x, eventsBottom);
+          ctx.lineTo(x, eventsBottom + 4);
+          ctx.strokeStyle = "#374151";
+          ctx.stroke();
+          ctx.fillText(tVal.toFixed(1), x, eventsBottom + 16);
+        }
+
+        // two bands: claims, vulnerabilities
+        const bandH = eventsHeight / 2;
+        for (let k = 0; k < 2; k++) {
+          const y = eventsTop + bandH * (k + 0.5);
+          ctx.fillStyle = colors[k];
+          ctx.textAlign = "left";
+          ctx.font = "13px system-ui";
+          ctx.fillText(dimNames[k], 8, y + 4);
+
+          ctx.beginPath();
+          ctx.moveTo(x0, y);
+          ctx.lineTo(x1, y);
+          ctx.strokeStyle = "#111827";
+          ctx.stroke();
+        }
+      }
+
+      // Empty axes + scenario only (no intensities)
+      function drawEmptyWithScenario() {
+        const defaultMax = 1.5;
+        drawAxes(defaultMax);
+
+        const x0 = leftMargin;
+        const bottomY = topPad + intensityHeight;
+        const eventsTop = bottomY + gap;
+        const bandH = eventsHeight / 2;
+
+        scenarioEvents.forEach(ev => {
+          const x = x0 + (ev.t / T) * (W - leftMargin - rightMargin);
+          const band = (ev.dim === 0) ? 0 : 1;
+          const y = eventsTop + bandH * (band + 0.5);
+          const r = 5;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0,0,0,0)";
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = (ev.dim === 0) ? "#fbbf24" : "#facc15";
+          ctx.stroke();
+        });
+      }
+
+      // Compute max lambda up to currentStep
+      function computeMaxLambdaSoFar() {
+        let maxL = 0;
+        baseIntensities.forEach(pt => {
+          if (pt.lambdaC > maxL) maxL = pt.lambdaC;
+          if (pt.lambdaV > maxL) maxL = pt.lambdaV;
+        });
+        stressIntensities.forEach(pt => {
+          if (pt.lambdaC > maxL) maxL = pt.lambdaC;
+          if (pt.lambdaV > maxL) maxL = pt.lambdaV;
+        });
+        if (maxL <= 0) maxL = Math.max(muC, muV) * 3;
+        return maxL * 1.2;
+      }
+
+      function drawIntensitiesSoFar(maxLambda) {
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const bottomY = topPad + intensityHeight;
+
+        // baseline dashed
+        ctx.setLineDash([4, 4]);
+        ctx.lineWidth = 1.2;
+
+        // claims baseline
+        ctx.beginPath();
+        let started = false;
+        baseIntensities.forEach(pt => {
+          const x = x0 + (pt.t / T) * (x1 - x0);
+          const y = bottomY - (pt.lambdaC / maxLambda) * intensityHeight;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = "rgba(249, 115, 115, 0.6)";
+        ctx.stroke();
+
+        // vuln baseline
+        ctx.beginPath();
+        started = false;
+        baseIntensities.forEach(pt => {
+          const x = x0 + (pt.t / T) * (x1 - x0);
+          const y = bottomY - (pt.lambdaV / maxLambda) * intensityHeight;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.6)";
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        // stressed solid
+        ctx.lineWidth = 1.8;
+
+        // claims stressed
+        ctx.beginPath();
+        started = false;
+        stressIntensities.forEach(pt => {
+          const x = x0 + (pt.t / T) * (x1 - x0);
+          const y = bottomY - (pt.lambdaC / maxLambda) * intensityHeight;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = colors[0];
+        ctx.stroke();
+
+        // vuln stressed
+        ctx.beginPath();
+        started = false;
+        stressIntensities.forEach(pt => {
+          const x = x0 + (pt.t / T) * (x1 - x0);
+          const y = bottomY - (pt.lambdaV / maxLambda) * intensityHeight;
+          if (!started) { ctx.moveTo(x, y); started = true; }
+          else ctx.lineTo(x, y);
+        });
+        ctx.strokeStyle = colors[1];
+        ctx.stroke();
+      }
+
+      function drawEventsSoFar() {
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const bottomY = topPad + intensityHeight;
+        const eventsTop = bottomY + gap;
+        const bandH = eventsHeight / 2;
+
+        // baseline events: faint
+        baseEvents.forEach(ev => {
+          const x = x0 + (ev.t / T) * (x1 - x0);
+          const band = (ev.dim === 0) ? 0 : 1;
+          const y = eventsTop + bandH * (band + 0.5);
+          const r = 2.5;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(148, 163, 184, 0.7)";
+          ctx.fill();
+        });
+
+        // stressed events: colored
+        stressEvents.forEach(ev => {
+          const x = x0 + (ev.t / T) * (x1 - x0);
+          const band = (ev.dim === 0) ? 0 : 1;
+          const y = eventsTop + bandH * (band + 0.5);
+          const r = 3.2;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = colors[ev.dim];
+          ctx.fill();
+        });
+
+        // scenario events: hollow markers
+        scenarioEvents.forEach(ev => {
+          const x = x0 + (ev.t / T) * (x1 - x0);
+          const band = (ev.dim === 0) ? 0 : 1;
+          const y = eventsTop + bandH * (band + 0.5);
+          const r = 6;
+          ctx.beginPath();
+          ctx.arc(x, y, r, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(0,0,0,0)";
+          ctx.fill();
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = (ev.dim === 0) ? "#fbbf24" : "#facc15";
+          ctx.stroke();
+        });
+      }
+
+      // One simulation step for both baseline and stressed
+      function stepSimulation() {
+        if (currentStep >= steps) return false;
+
+        const t = currentStep * dt;
+
+        // 1) decay kernels
+        base_h_cc *= Math.exp(-bcc * dt);
+        base_h_vv *= Math.exp(-bvv * dt);
+        base_h_vc *= Math.exp(-bvc * dt);
+
+        stress_h_cc *= Math.exp(-bcc * dt);
+        stress_h_vv *= Math.exp(-bvv * dt);
+        stress_h_vc *= Math.exp(-bvc * dt);
+
+        // 2) scenario jumps only in stressed
+        if (scenarioEvents.length > 0) {
+          scenarioEvents.forEach(ev => {
+            const idx = Math.round(ev.t / dt);
+            if (idx === currentStep) {
+              const m = 2;
+              const w = markWeight(m);
+              if (ev.dim === 0) {
+                // scenario claim
+                stress_h_cc += acc * w;
+              } else if (ev.dim === 1) {
+                // scenario vuln
+                stress_h_vv += avv * w;
+                stress_h_vc += avc * w;
+              }
+            }
+          });
+        }
+
+        // 3) intensities
+        let baseLambdaC = muC + base_h_cc + base_h_vc;
+        let baseLambdaV = muV + base_h_vv;
+        let stressLambdaC = muC + stress_h_cc + stress_h_vc;
+        let stressLambdaV = muV + stress_h_vv;
+
+        baseLambdaC = Math.max(baseLambdaC, 0.01);
+        baseLambdaV = Math.max(baseLambdaV, 0.01);
+        stressLambdaC = Math.max(stressLambdaC, 0.01);
+        stressLambdaV = Math.max(stressLambdaV, 0.01);
+
+        baseIntensities.push({ t, lambdaC: baseLambdaC, lambdaV: baseLambdaV });
+        stressIntensities.push({ t, lambdaC: stressLambdaC, lambdaV: stressLambdaV });
+
+        // 4) endogenous events, coupled via randU & randM
+        for (let k = 0; k < dimCount; k++) {
+          const u = randU[k][currentStep];
+          const mark = randM[k][currentStep];
+          const w = markWeight(mark);
+
+          const lambdaBase = (k === 0) ? baseLambdaC : baseLambdaV;
+          const lambdaStress = (k === 0) ? stressLambdaC : stressLambdaV;
+
+          const pBase = 1 - Math.exp(-lambdaBase * dt);
+          const pStress = 1 - Math.exp(-lambdaStress * dt);
+
+          if (u < pBase) {
+            const evt = { t, dim: k, mark };
+            baseEvents.push(evt);
+            if (k === 0) {
+              base_h_cc += acc * w;
+            } else if (k === 1) {
+              base_h_vv += avv * w;
+              base_h_vc += avc * w;
+            }
+          }
+
+          if (u < pStress) {
+            const evt = { t, dim: k, mark };
+            stressEvents.push(evt);
+            if (k === 0) {
+              stress_h_cc += acc * w;
+            } else if (k === 1) {
+              stress_h_vv += avv * w;
+              stress_h_vc += avc * w;
+            }
+          }
+        }
+
+        currentStep += 1;
+        return currentStep < steps;
+      }
+
+      function renderFrame() {
+        const maxLambda = computeMaxLambdaSoFar();
+        drawAxes(maxLambda);
+        if (baseIntensities.length > 0) {
+          drawIntensitiesSoFar(maxLambda);
+          drawEventsSoFar();
+        } else {
+          drawEmptyWithScenario();
+        }
+      }
+
+      function startAnimation() {
+        if (animTimerId !== null) {
+          clearInterval(animTimerId);
+          animTimerId = null;
+        }
+
+        initRandoms();
+        resetSimulationState();
+        simStatusEl.textContent = "Simulating...";
+
+        animTimerId = setInterval(function () {
+          // plusieurs pas par frame pour que ça avance bien
+          let stillRunning = true;
+          for (let i = 0; i < 3; i++) {
+            stillRunning = stepSimulation();
+            if (!stillRunning) break;
+          }
+          renderFrame();
+          if (!stillRunning) {
+            clearInterval(animTimerId);
+            animTimerId = null;
+            simStatusEl.textContent =
+              "Last run: baseline (dashed) vs stressed (solid) for current scenario.";
+          }
+        }, 60);
+      }
+
+      // Canvas click: add scenario event
+      canvas.addEventListener("click", function (e) {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        const x0 = leftMargin;
+        const x1 = W - rightMargin;
+        const bottomY = topPad + intensityHeight;
+        const eventsTop = bottomY + gap;
+        const eventsBottom = eventsTop + eventsHeight;
+
+        if (x < x0 || x > x1) return;
+        if (y < eventsTop || y > eventsBottom) return;
+
+        const fracT = (x - x0) / (x1 - x0);
+        const t = fracT * T;
+
+        const bandH = eventsHeight / 2;
+        const bandIndex = (y < eventsTop + bandH) ? 0 : 1; // 0=claims, 1=vuln
+
+        scenarioEvents.push({ t, dim: bandIndex });
+        updateScenarioStatus();
+
+        // Si aucune simu en cours, on met à jour l'affichage scenario-only
+        if (animTimerId === null && baseIntensities.length === 0) {
+          drawEmptyWithScenario();
+        }
+      });
+
+      clearBtn.addEventListener("click", function () {
+        scenarioEvents = [];
+        updateScenarioStatus();
+        if (animTimerId !== null) {
+          clearInterval(animTimerId);
+          animTimerId = null;
+        }
+        baseIntensities = [];
+        stressIntensities = [];
+        baseEvents = [];
+        stressEvents = [];
+        currentStep = 0;
+        simStatusEl.textContent =
+          "No simulation yet – define a scenario and click “Simulate”.";
+        drawEmptyWithScenario();
+      });
+
+      simulateBtn.addEventListener("click", function () {
+        if (animTimerId !== null) {
+          clearInterval(animTimerId);
+          animTimerId = null;
+        }
+        startAnimation();
+      });
+
+      // Initial state
+      updateScenarioStatus();
+      drawEmptyWithScenario();
+    })();
+  </script>
+</body>
+</html>
