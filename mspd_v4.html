@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MSPD Interactive — Multivariate Self-Exciting Processes with Dependencies</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<style>
+:root{
+  --bg:#04080f;--pnl:#0a1120;--card:#0d1526;--inp:#111b2e;
+  --brd:rgba(148,163,184,.15);--ba:rgba(56,189,248,.25);
+  --tx:#cbd5e1;--txb:#f1f5f9;--txm:#64748b;
+  --cy:#38bdf8;--co:#fb7185;--am:#fbbf24;--em:#34d399;--vi:#a78bfa;
+  --cv-bg:#04080f;--cv-grid:rgba(148,163,184,.06);--cv-axis:#64748b;--cv-label:#94a3b8;
+  --fd:'Instrument Serif',Georgia,serif;
+  --fb:'DM Sans',system-ui,sans-serif;
+  --fm:'DM Mono','SF Mono',Consolas,monospace;
+  --r:12px;--rl:20px;
+}
+html.light{
+  --bg:#f8fafc;--pnl:#f1f5f9;--card:#ffffff;--inp:#e2e8f0;
+  --brd:rgba(51,65,85,.15);--ba:rgba(14,116,144,.3);
+  --tx:#334155;--txb:#0f172a;--txm:#64748b;
+  --cy:#0891b2;--co:#e11d48;--am:#d97706;--em:#059669;--vi:#7c3aed;
+  --cv-bg:#f1f5f9;--cv-grid:rgba(51,65,85,.08);--cv-axis:#64748b;--cv-label:#475569;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+a{color:var(--cy);text-decoration:none}a:hover{text-decoration:underline}
+.container{max-width:1100px;margin:0 auto;padding:0 20px}
+section{padding:50px 0}
+.pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--fm);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--cy);padding:5px 14px;border-radius:999px;border:1px solid var(--ba);background:rgba(56,189,248,.06);margin-bottom:16px}
+.pill::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--cy);box-shadow:0 0 8px var(--cy)}
+h1{font-family:var(--fd);font-size:clamp(2rem,5vw,3.2rem);font-weight:400;color:var(--txb);line-height:1.15;margin-bottom:14px}
+h2{font-family:var(--fd);font-size:clamp(1.5rem,3.5vw,2.1rem);font-weight:400;color:var(--txb);line-height:1.2;margin-bottom:12px}
+h3{font-family:var(--fm);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--txm);margin-bottom:8px;margin-top:14px}
+.lead{font-size:16px;color:var(--tx);max-width:720px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--brd);border-radius:var(--rl);padding:18px}
+.cframe{background:var(--bg);border:1px solid var(--brd);border-radius:var(--r);padding:5px;margin-top:10px}
+.cframe canvas{display:block;width:100%;border-radius:8px}
+.divider{height:1px;background:linear-gradient(90deg,transparent,var(--brd),transparent)}
+
+/* Form elements */
+.sg{display:flex;flex-direction:column;gap:3px;margin-bottom:6px}
+.sr{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--txm)}
+.sr code{font-family:var(--fm);font-size:12px;color:var(--txb)}
+.sv{font-family:var(--fm);font-size:11px;padding:2px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--brd);color:var(--tx);min-width:48px;text-align:right}
+input[type=range]{-webkit-appearance:none;width:100%;height:4px;border-radius:999px;background:#1e293b;outline:none;margin:4px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--cy);border:2px solid var(--bg);box-shadow:0 0 8px rgba(56,189,248,.6);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--cy);border:2px solid var(--bg);cursor:pointer}
+select{font-family:var(--fm);font-size:12px;padding:5px 8px;border-radius:8px;background:var(--inp);border:1px solid var(--brd);color:var(--tx);cursor:pointer;width:100%}
+input[type=number]{font-family:var(--fm);font-size:12px;padding:4px 6px;border-radius:6px;background:var(--inp);border:1px solid var(--brd);color:var(--tx);width:68px}
+.btn{font-family:var(--fm);font-size:13px;padding:8px 16px;border-radius:999px;border:1px solid var(--brd);background:var(--inp);color:var(--tx);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .2s}
+.btn:hover{border-color:var(--cy);color:var(--txb)}
+.btn-p{background:linear-gradient(135deg,var(--cy),var(--em));border-color:transparent;color:var(--bg);font-weight:500}
+.btn-p:hover{opacity:.9;color:var(--bg)}
+.btn-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:10px}
+.status{font-family:var(--fm);font-size:12px;color:var(--txm);display:inline-flex;align-items:center;gap:6px}
+.sdot{width:7px;height:7px;border-radius:50%}.sdot.on{background:var(--em);box-shadow:0 0 8px var(--em)}.sdot.off{background:var(--txm)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:13px;color:var(--txm)}
+.legend-i{display:inline-flex;align-items:center;gap:6px}
+.ldot{width:10px;height:10px;border-radius:50%}
+.ctrl-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:500px){.ctrl-2{grid-template-columns:1fr}}
+.two-col{display:flex;flex-direction:column;gap:14px}
+.timer-bar{height:3px;background:var(--inp);border-radius:999px;margin-top:8px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--cy),var(--em));border-radius:999px;transition:width .2s linear}
+.expl{border-left:3px solid var(--cy);padding:12px 16px;background:rgba(56,189,248,.04);border-radius:0 var(--r) var(--r) 0;margin:14px 0;font-size:14px}.expl strong{color:var(--txb)}
+.mc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-top:12px}
+.mc-s{background:var(--bg);border:1px solid var(--brd);border-radius:var(--r);padding:12px;text-align:center}
+.mc-l{font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);margin-bottom:4px}
+.mc-v{font-family:var(--fm);font-size:18px;font-weight:500;color:var(--txb)}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.badge{font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;border:1px solid var(--brd);color:var(--txm)}
+footer{padding:36px 0;border-top:1px solid var(--brd);font-size:13px;color:var(--txm);text-align:center}
+html.light input[type=range]{background:#cbd5e1}
+html.light input[type=range]::-webkit-slider-thumb{border-color:var(--card);box-shadow:0 0 6px rgba(14,116,144,.4)}
+html.light .cframe{background:var(--pnl)}
+html.light .mc-s{background:var(--pnl)}
+html.light .sv{background:var(--pnl)}
+html.light .mat-cell{background:var(--pnl)}
+html.light .popup{background:var(--card);border-color:var(--brd)}
+html.light .expl{background:rgba(14,116,144,.04)}
+html.light .pill{background:rgba(14,116,144,.06)}
+html.light #ex-sliders .sg{background:var(--pnl)}
+
+/* Theme toggle */
+.theme-toggle{position:fixed;top:16px;right:16px;z-index:50;width:42px;height:42px;border-radius:50%;border:1px solid var(--brd);background:var(--card);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .3s;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.theme-toggle:hover{border-color:var(--cy);transform:scale(1.1)}
+
+/* ── KaTeX inline fix ── */
+.katex-display{margin:.6em 0!important}
+.k{display:inline-block}
+
+/* ── MATRIX VISUAL ── */
+.mat-wrap{margin:10px 0}
+.mat-bracket{display:inline-flex;align-items:stretch;gap:0;font-size:0}
+.mat-bracket::before,.mat-bracket::after{content:'';width:6px;border:2px solid var(--txm);flex-shrink:0}
+.mat-bracket::before{border-right:none;border-radius:6px 0 0 6px}
+.mat-bracket::after{border-left:none;border-radius:0 6px 6px 0}
+.mat-inner{display:grid;gap:4px;padding:6px 8px}
+.mat-cell{background:var(--inp);border:1px solid var(--brd);border-radius:8px;padding:8px 10px;cursor:pointer;text-align:center;transition:all .2s;min-width:80px;position:relative}
+.mat-cell:hover{border-color:var(--cy);background:rgba(56,189,248,.06)}
+.mat-cell.active{border-color:var(--cy);box-shadow:0 0 14px rgba(56,189,248,.2)}
+.mat-cell .k{font-size:14px}
+.mat-cell-sub{font-family:var(--fm);font-size:10px;color:var(--txm);margin-top:2px}
+
+/* ── POPUP EDITOR ── */
+.popup-overlay{position:fixed;inset:0;background:rgba(4,8,15,.8);z-index:100;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
+.popup-overlay.open{opacity:1;pointer-events:all}
+.popup{background:var(--card);border:1px solid var(--ba);border-radius:var(--rl);padding:24px;max-width:380px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+.popup h3{margin-top:0}
+.popup-title{font-family:var(--fm);font-size:14px;color:var(--txb);margin-bottom:12px}
+.popup-row{margin-bottom:10px}
+.popup-row label{display:block;font-family:var(--fm);font-size:12px;color:var(--txm);margin-bottom:4px}
+.popup-row input[type=number]{width:100%}
+.popup-check{display:flex;align-items:center;gap:8px;font-family:var(--fm);font-size:12px;color:var(--txm);margin-top:4px;cursor:pointer}
+.popup-check input{accent-color:var(--cy)}
+.popup-btns{display:flex;gap:8px;margin-top:14px}
+
+/* ── DYNAMIC SLIDERS AREA ── */
+#ex-sliders{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+#ex-sliders .sg{background:var(--inp);border-radius:8px;padding:8px 10px}
+</style>
+</head>
+<body>
+
+<div id="popup-overlay" class="popup-overlay">
+  <div class="popup" id="popup-box">
+    <div class="popup-title" id="popup-title"></div>
+    <div id="popup-content"></div>
+    <div class="popup-btns">
+      <button class="btn btn-p" id="popup-ok">Apply</button>
+      <button class="btn" id="popup-cancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<button class="theme-toggle" id="theme-toggle" title="Toggle light/dark mode">☀</button>
+
+<section id="hero" style="min-height:40vh;display:flex;align-items:center;padding:70px 0 30px;background:radial-gradient(ellipse 70% 50% at 50% 0%,rgba(56,189,248,.07),transparent)">
+  <div class="container">
+    <div>
+      <div class="pill"><a href="index.html" class="nav-current">Thomas Peyrat</a></div>
+      <h1>Multivariate Self-Exciting Processes <em>with Dependencies</em></h1>
+      <p class="lead">An interactive exploration of MSPD — a unifying framework for modelling contagion, clustering, and cascading risk in finance and insurance.</p>
+      <div class="badges">
+        <span class="badge"><a href="mspd_v4.html#theory" class="nav-current">Theory</a></span>
+        <span class="badge"><a href="mspd_v4.html#explorer" class="nav-current">MSPD Explorer</a></span>
+        <span class="badge"><a href="mspd_v4.html#montecarlo" class="nav-current">MSPD Analytics</a></span>
+        <span class="badge"><a href="mspd_v4.html#stress" class="nav-current">Stress testing</a></span>
+      </div>
+
+      <p style="margin-top:14px;font-size:13px;color:var(--txm)">
+        <a href="https://arxiv.org/abs/2503.15958" target="_blank">Hillairet, Peyrat &amp; Réveillac (2025)</a> ·
+        <a href="https://arxiv.org/abs/2311.15701" target="_blank">Boumezoued et al. (2023)</a>
+      </p>
+    </div>
+    <div style="border-radius:var(--rl);border:1px solid var(--brd);overflow:hidden;background:var(--pnl);margin-top:20px">
+      <canvas id="hero-canvas" width="1060" height="180" style="display:block;width:100%;height:180px"></canvas>
+    </div>
+  </div>
+</section>
+<div class="divider"></div>
+
+<section id="theory">
+  <div class="container">
+    <div class="pill">Theory</div>
+    <h2>What is an MSPD?</h2>
+    <p class="lead">Traditional models assume claims arrive independently (Poisson). For cyber risk, past events excite future ones and severity feeds back into frequency. MSPDs capture this.</p>
+    <div class="expl"><strong>Key idea:</strong> Each event increases the probability of future events through excitation kernels. Larger events produce stronger aftershocks. The framework unifies counting, loss, and intensity processes.</div>
+    <div id="theory-eq1" style="text-align:center;margin:16px 0"></div>
+    <div id="theory-eq2" style="text-align:center;margin:16px 0"></div>
+    <p style="font-size:14px;color:var(--txm);max-width:700px;margin-top:12px">
+      The matrix <span id="k-phi-ref"></span> encodes self- and cross-excitation. The observation kernel <span id="k-zeta-ref"></span> determines <em>what</em> is measured (counting, loss, discounted loss…). Marks <span id="k-y"></span> enter multiplicatively.
+    </p>
+    <p style="font-size:14px;color:var(--txm);max-width:700px;margin-top:8px">
+      <strong>Available kernels below:</strong> Exponential <span id="k-exp-def"></span> and Erlang-2 <span id="k-erl-def"></span>. Marks follow <span id="k-mark-def"></span> distributions.
+    </p>
+  </div>
+</section>
+<div class="divider"></div>
+
+<section id="explorer">
+  <div class="container">
+    <div class="pill">Time to cook</div>
+    <h2>MSPD Explorer</h2>
+    <p class="lead">Configure a <span id="k-d-dim"></span>-dimensional MSPD step by step. Click on matrix cells to set kernels and parameters. Check "slider" to get a live control.</p>
+
+    <div class="two-col">
+      <div id="ex-cfg" class="card">
+        <h3 style="margin-top:0">1 · Setup</h3>
+        <div class="ctrl-2" style="margin-bottom:8px">
+          <div class="sg"><div class="sr"><code>d</code> dimension</div>
+            <select id="ex-d"><option value="1" selected>d = 1</option><option value="2">d = 2</option></select>
+          </div>
+          <div class="sg"><div class="sr"><code>Mode</code></div>
+            <select id="ex-mode"><option value="continuous">Continuous (60s max)</option><option value="fixed">Fixed maturity T</option></select>
+          </div>
+        </div>
+        <div class="sg" id="ex-T-wrap" style="display:none">
+          <div class="sr"><code>T</code> maturity <span id="ex-T-val" class="sv">30</span></div>
+          <input id="ex-T" type="range" min="5" max="100" step="5" value="30"/>
+        </div>
+
+        <h3>2 · Marks <span id="k-marks-title"></span></h3>
+        <div id="ex-marks" class="ctrl-2"></div>
+
+        <h3>3 · Baseline <span id="k-mu-title"></span></h3>
+        <div id="ex-mu" class="ctrl-2"></div>
+
+        <div class="ctrl-2" style="align-items:start">
+          <div>
+            <h3>4 · Excitation <span id="k-phi-title"></span></h3>
+            <p style="font-size:11px;color:var(--txm);margin-bottom:6px">Click a cell to configure.</p>
+            <div id="ex-phi-mat" class="mat-wrap"></div>
+          </div>
+          <div>
+            <h3>5 · Observation <span id="k-zeta-title"></span></h3>
+            <p style="font-size:11px;color:var(--txm);margin-bottom:6px">0 = ignore, or <span id="k-zeta-form"></span>.</p>
+            <div id="ex-zeta-mat" class="mat-wrap"></div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="legend-i"><span class="ldot" style="background:var(--co)"></span>Dim 1</div>
+          <div class="legend-i"><span class="ldot" style="background:var(--cy)"></span>Dim 2</div>
+        </div>
+        <div class="btn-row">
+          <button id="ex-play" class="btn btn-p">▶ Play</button>
+          <button id="ex-reset" class="btn">↺ Reset</button>
+          <span id="ex-status" class="status"><span class="sdot off"></span>Ready</span>
+        </div>
+        <div class="timer-bar"><div id="ex-timer" class="timer-fill" style="width:0%"></div></div>
+
+        <div id="ex-sliders"></div>
+      </div>
+
+      <div>
+        <div class="cframe"><canvas id="ex-canvas" width="720" height="540"></canvas></div>
+        <p style="font-size:13px;color:var(--txm);margin-top:6px">
+          <strong>Top:</strong> Intensities. <strong>Middle:</strong> Events (dot size = mark). <strong>Bottom:</strong> Processes <span id="k-z-label"></span>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+<section id="montecarlo">
+  <div class="container">
+    <div class="pill">Analytics</div>
+    <h2>Monte Carlo on the MSPD</h2>
+    <p class="lead">Run simulations using the model above (requires <em>fixed maturity</em>). Compare empirical distributions with quantile markers.</p>
+    <div id="mc-disabled" class="expl" style="border-left-color:var(--am)"><strong>Fixed maturity required.</strong> Switch the Explorer to "Fixed maturity T" to enable Monte Carlo.</div>
+    <div id="mc-panel" style="display:none">
+      <div class="card">
+        <div style="display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end">
+          <div class="sg" style="min-width:130px"><div class="sr"><code>N</code> sims <span id="mc-N-val" class="sv">300</span></div><input id="mc-N" type="range" min="50" max="2000" step="50" value="300"/></div>
+          <div class="sg" style="min-width:100px"><div class="sr"><code>q</code> quantile <span id="mc-q-val" class="sv">0.95</span></div><input id="mc-q" type="range" min="0.5" max="0.99" step="0.01" value="0.95"/></div>
+          <button id="mc-run" class="btn btn-p">⚡ Run MC</button>
+          <span id="mc-status" class="status">Ready</span>
+        </div>
+        <div id="mc-results"></div>
+        <div id="mc-canvases"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+<section id="stress">
+  <div class="container">
+    <div class="pill">Cyber Application</div>
+    <h2>Stress Testing for Cyber Insurance</h2>
+    <p class="lead">A cyber loss model where vulnerability disclosures (homogeneous Poisson of rate <span id="k-rho-inline"></span>) excite the claims process through exponential kernels.</p>
+
+    <div class="card" style="margin-bottom:14px">
+      <h3 style="margin-top:0">Cyber model</h3>
+      <div id="st-formula" style="text-align:center;margin:12px 0"></div>
+      <p style="font-size:13px;color:var(--txm);margin-top:8px">
+        with claims <span id="k-st-c"></span> and vulnerability scores <span id="k-st-v"></span>. Vulnerabilities arrive as a homogeneous Poisson process of intensity <span id="k-st-rho2"></span>.
+      </p>
+      <div class="ctrl-2" style="margin-top:10px">
+        <div class="sg"><div class="sr"><code>λ₀</code> baseline <span id="st-l0-val" class="sv">1.50</span></div><input id="st-l0" type="range" min="0" max="5" step="0.1" value="1.50"/></div>
+        <div class="sg"><div class="sr"><code>ρ</code> vuln rate <span id="st-rho-val" class="sv">0.20</span></div><input id="st-rho" type="range" min="0" max="2" step="0.1" value="0.20"/></div>
+        <div class="sg"><div class="sr"><code>δ</code> decay <span id="st-delta-val" class="sv">1.7</span></div><input id="st-delta" type="range" min="0" max="5" step="0.01" value="1.7"/></div>
+        <div class="sg"><div class="sr"><code>θ_C</code> claim rate <span id="st-ec-val" class="sv">1.0</span></div><input id="st-ec" type="range" min="0.1" max="10" step="0.1" value="1.0"/></div>
+        <div class="sg"><div class="sr"><code>θ_V</code> vuln score rate <span id="st-ev-val" class="sv">1.20</span></div><input id="st-ev" type="range" min="0.1" max="10" step="0.1" value="1.20"/></div>
+        <div class="sg"><div class="sr"><code>T</code> horizon <span id="st-T-val" class="sv">40</span></div><input id="st-HT" type="range" min="5" max="80" step="5" value="40"/></div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <h3 style="margin-top:0">Scenario builder</h3>
+        <p style="font-size:13px;color:var(--txm);margin-bottom:8px">Click in the event panel to add events. Set severity and type below.</p>
+        <div style="display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap">
+          <label style="font-family:var(--fm);font-size:12px;color:var(--txm)">Type:</label>
+          <select id="st-type" style="width:auto;min-width:120px"><option value="0">Claim</option><option value="1" selected>Vulnerability</option></select>
+          <label style="font-family:var(--fm);font-size:12px;color:var(--txm)">Severity:</label>
+          <input id="st-sev" type="number" value="10.0" min="0.1" max="20" step="0.2"/>
+        </div>
+        <div class="btn-row">
+          <button id="st-sim" class="btn btn-p">⟳ Simulate</button>
+          <button id="st-clear" class="btn">🗑 Clear</button>
+          <span id="st-count" class="status">0 events</span>
+        </div>
+        <div class="legend" style="margin-top:10px">
+          <div class="legend-i"><span class="ldot" style="background:var(--co);opacity:.4"></span>Baseline</div>
+          <div class="legend-i"><span class="ldot" style="background:var(--co)"></span>Stressed</div>
+          <div class="legend-i"><span class="ldot" style="background:var(--am)"></span>Scenario</div>
+        </div>
+        <h3>Surplus (this run)</h3>
+        <div class="mc-grid">
+          <div class="mc-s"><div class="mc-l">ΔL_T</div><div class="mc-v" id="stv-dl">—</div></div>
+          <div class="mc-s"><div class="mc-l">Base #claims</div><div class="mc-v" id="stv-bc">—</div></div>
+          <div class="mc-s"><div class="mc-l">Stress #claims</div><div class="mc-v" id="stv-sc">—</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="cframe"><canvas id="st-canvas" width="720" height="480"></canvas></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <p>MSPD Interactive Visualizer — C. Hillairet, T. Peyrat &amp; A. Réveillac</p>
+    <p style="margin-top:4px"><a href="https://arxiv.org/abs/2503.15958">MSPD Paper</a> · <a href="https://arxiv.org/abs/2311.15701">Cyber Vulnerabilities</a></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+"use strict";
+
+/* ═══ Utility ═══ */
+const $ = id => document.getElementById(id);
+const P = el => parseFloat(el.value);
+function sampleExp(rate){ return rate > 0 ? -Math.log(Math.random()) / rate : 0; }
+const DC = ["#fb7185","#38bdf8","#a78bfa","#fbbf24"];
+const DCA = ["rgba(251,113,133,","rgba(56,189,248,","rgba(167,139,250,","rgba(251,191,36,"];
+
+/* ═══ Theme Toggle ═══ */
+(function(){
+  const btn = $("theme-toggle");
+  const html = document.documentElement;
+  const stored = localStorage.getItem("mspd-theme");
+  if(stored === "light") html.classList.add("light");
+  updateIcon();
+  btn.addEventListener("click", ()=>{
+    html.classList.toggle("light");
+    localStorage.setItem("mspd-theme", html.classList.contains("light") ? "light" : "dark");
+    updateIcon();
+  });
+  function updateIcon(){ btn.textContent = html.classList.contains("light") ? "🌙" : "☀"; }
+})();
+
+/* ═══ Canvas theme colors helper ═══ */
+function getCSS(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+function cvBg(){ return getCSS("--cv-bg") || "#04080f"; }
+function cvGrid(){ return getCSS("--cv-grid") || "rgba(148,163,184,.06)"; }
+function cvAxis(){ return getCSS("--cv-axis") || "#64748b"; }
+function cvLabel(){ return getCSS("--cv-label") || "#94a3b8"; }
+
+/* ═══ HiDPI canvas helpers ═══ */
+function getCanvasDisplaySize(canvas, fallbackW, fallbackH){
+  const w = Math.max(1, Math.round(canvas.clientWidth || fallbackW || canvas.width || 1));
+  const h = Math.max(1, Math.round(canvas.clientHeight || fallbackH || canvas.height || 1));
+  return {w,h};
+}
+function resizeHiDPICanvas(canvas, ctx, fallbackW, fallbackH){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const {w,h} = getCanvasDisplaySize(canvas, fallbackW, fallbackH);
+  if(canvas.__logicalW !== w || canvas.__logicalH !== h || canvas.__dpr !== dpr){
+    canvas.width = Math.round(w * dpr);
+    canvas.height = Math.round(h * dpr);
+    canvas.__logicalW = w;
+    canvas.__logicalH = h;
+    canvas.__dpr = dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    ctx.imageSmoothingEnabled = true;
+  } else {
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  return {w,h,dpr};
+}
+function logicalPointerPos(evt, canvas, fallbackW, fallbackH){
+  const rect = canvas.getBoundingClientRect();
+  const {w,h} = getCanvasDisplaySize(canvas, fallbackW, fallbackH);
+  return {
+    x: (evt.clientX - rect.left) * (w / rect.width),
+    y: (evt.clientY - rect.top) * (h / rect.height)
+  };
+}
+function crisp(v){ return Math.round(v) + 0.5; }
+
+/* ═══ KaTeX helper ═══ */
+function K(el,tex,display){
+  if(typeof el === "string") el = document.getElementById(el);
+  if(!el) return;
+  try{ katex.render(tex, el, {displayMode:!!display, throwOnError:false}); }catch(e){}
+}
+function renderAllStatic(){
+  K("theory-eq1","\\boldsymbol{Z}^i_T = \\int_{\\mathbf{X}_T} \\boldsymbol{\\zeta}^{i,k}(T-t,\\,y)\\,\\mathbf{1}_{\\{\\theta \\leq \\boldsymbol{\\lambda}^k_t\\}}\\,\\mathbf{N}(dk,dt,d\\theta,dy)",true);
+  K("theory-eq2","\\boldsymbol{\\lambda}^i_T = \\boldsymbol{\\mu}^i(T) + \\int_{\\mathbf{X}_T} \\boldsymbol{\\varphi}^{i,k}(T-t,\\,y)\\,\\mathbf{1}_{\\{\\theta \\leq \\boldsymbol{\\lambda}^k_t\\}}\\,\\mathbf{N}(dk,dt,d\\theta,dy)",true);
+  K("k-phi-ref","\\boldsymbol{\\varphi}");
+  K("k-zeta-ref","\\boldsymbol{\\zeta}");
+  K("k-y","y");
+  K("k-exp-def","\\varphi(t,y)=\\alpha\\,y\\,e^{-\\delta t}");
+  K("k-erl-def","\\varphi(t,y)=\\alpha\\,\\delta^2\\,y\\,t\\,e^{-\\delta t}");
+  K("k-mark-def","Y^k\\sim\\mathrm{Exp}(\\theta_k)");
+  K("k-d-dim","d");
+  K("k-marks-title","Y^k\\sim\\mathrm{Exp}(\\theta_k)");
+  K("k-mu-title","\\boldsymbol{\\mu}");
+  K("k-phi-title","\\boldsymbol{\\varphi}");
+  K("k-zeta-title","\\boldsymbol{\\zeta}");
+  K("k-zeta-form","\\zeta(t,y)=y\\,e^{-\\tau\\, t}");
+  K("k-z-label","\\boldsymbol{Z}^i(t)");
+  K("k-rho-inline","\\rho");
+  K("st-formula","\\lambda_t = \\lambda_0 + \\sum_{\\tau^{\\text{int}}_k < t}C_k\\,e^{-\\delta(t-\\tau^{\\text{int}}_k)} + \\sum_{\\tau^{\\text{ext}}_k < t}V_k\\,e^{-\\delta(t-\\tau^{\\text{ext}}_k)}",true);
+  K("k-st-c","C_k\\sim\\mathrm{Exp}(\\theta_C)");
+  K("k-st-v","V_k\\sim\\mathrm{Exp}(\\theta_V)");
+  K("k-st-rho2","\\rho");
+}
+
+/* ═══ POPUP SYSTEM ═══ */
+let popupResolve = null;
+function openPopup(title, buildFn){
+  return new Promise(resolve=>{
+    popupResolve = resolve;
+    $("popup-title").textContent = title;
+    const content = $("popup-content");
+    content.innerHTML = "";
+    buildFn(content);
+    $("popup-overlay").classList.add("open");
+  });
+}
+function closePopup(val){
+  $("popup-overlay").classList.remove("open");
+  if(popupResolve){ popupResolve(val); popupResolve = null; }
+}
+$("popup-ok").addEventListener("click", ()=>closePopup(true));
+$("popup-cancel").addEventListener("click", ()=>closePopup(false));
+$("popup-overlay").addEventListener("click", function(e){ if(e.target === this) closePopup(false); });
+
+/* ═══════════════════════════════════════
+   HERO ANIMATION — retina + rAF
+   ═══════════════════════════════════════ */
+(function(){
+  const canvas = $("hero-canvas");
+  const c = canvas.getContext("2d");
+  let t = 0;
+  const dt = 0.05;
+  let h0 = 0, h1 = 0, hx = 0, hist = [];
+  const mu0 = 0.1, mu1 = 0.15, a0 = 0.5, a1 = 0.3, ax = 0.6, b0 = 1.4, b1 = 1.2, bx = 1.6, win = 40;
+  let lastTs = 0;
+
+  function draw(){
+    const {w:W,h:H} = resizeHiDPICanvas(canvas,c,1060,180);
+    c.clearRect(0,0,W,H);
+    if(hist.length < 2) return;
+
+    let mx = 0;
+    hist.forEach(h=>{ mx = Math.max(mx,h.l0,h.l1); });
+    mx = Math.max(mx * 1.3, 1);
+
+    const tMin = Math.max(0, t-win), tMax = t, p = 20;
+
+    [["l0","rgba(251,113,133,.7)"],["l1","rgba(56,189,248,.75)"]].forEach(([k,col])=>{
+      c.beginPath();
+      let started = false;
+      hist.forEach(h=>{
+        const x = p + (h.t - tMin)/(tMax - tMin) * (W - 2*p);
+        const y = H - p - (h[k]/mx) * (H - 2*p);
+        if(started) c.lineTo(x,y); else { c.moveTo(x,y); started = true; }
+      });
+      c.strokeStyle = col;
+      c.lineWidth = 2;
+      c.stroke();
+    });
+  }
+
+  function loop(ts){
+    if(!lastTs) lastTs = ts;
+    const elapsed = ts - lastTs;
+    if(elapsed >= 32){
+      for(let _=0; _<2; _++){
+        h0 *= Math.exp(-b0*dt);
+        h1 *= Math.exp(-b1*dt);
+        hx *= Math.exp(-bx*dt);
+        const l0 = Math.max(.01, mu0+h0+hx);
+        const l1 = Math.max(.01, mu1+h1);
+
+        for(let k=0; k<2; k++){
+          if(Math.random() < 1 - Math.exp(-(k ? l1 : l0)*dt)){
+            const y = sampleExp(1);
+            if(k===0) h0 += a0*y;
+            else { h1 += a1*y; hx += ax*y; }
+          }
+        }
+
+        hist.push({t,l0,l1});
+        while(hist.length && hist[0].t < t-win) hist.shift();
+        t += dt;
+      }
+      draw();
+      lastTs = ts;
+    }
+    requestAnimationFrame(loop);
+  }
+
+  window.addEventListener("resize", draw);
+  requestAnimationFrame(loop);
+})();
+
+/* ═══════════════════════════════════════
+   EXPLORER MODULE
+   ═══════════════════════════════════════ */
+const EX = (function(){
+  let d = 1;
+  let markRates = [1.0,1.0];
+  let muType = ["const","const"];
+  let muConst = [1.0,1.30];
+  let muSinA = [0.2,0.3], muSinB = [0.1,0.1], muSinW = [0.5,0.3];
+
+  let phi = [
+    [{type:"exp",alpha:0.5,delta:1.6},{type:"exp",alpha:.8,delta:1.6}],
+    [{type:"zero",alpha:0,delta:1},{type:"exp",alpha:.4,delta:1.2}]
+  ];
+
+  let zeta = [
+    [{type:"mark",tau:0},{type:"zero",tau:0}],
+    [{type:"zero",tau:0},{type:"zero",tau:0}]
+  ];
+
+  let dynSliders = [];
+  let running = false;
+  let rafId = null;
+  let lastFrameTs = 0;
+  let simTime = 0;
+  let startWall = 0;
+
+  const dt = .05, maxSec = 60, winSize = 35;
+  let hExp = [], hErl0 = [], hErl1 = [], zState = [], zCur = [];
+  let events = [], intHist = [], zHist = [];
+
+  const canvas = $("ex-canvas");
+  const c = canvas.getContext("2d");
+
+  function getD(){ return d; }
+  function getConfig(){ return {d,markRates,muType,muConst,muSinA,muSinB,muSinW,phi,zeta}; }
+
+  function buildPhiMatrix(){
+    const wrap = $("ex-phi-mat");
+    wrap.innerHTML = "";
+    const bracket = document.createElement("div");
+    bracket.className = "mat-bracket";
+    const inner = document.createElement("div");
+    inner.className = "mat-inner";
+    inner.style.gridTemplateColumns = "repeat("+d+",1fr)";
+
+    for(let i=0;i<d;i++) for(let k=0;k<d;k++){
+      const cell = document.createElement("div");
+      cell.className = "mat-cell";
+      cell.id = "phi-c-"+i+"-"+k;
+      updatePhiCellDisplay(cell,i,k);
+      cell.addEventListener("click", ()=>openPhiEditor(i,k));
+      inner.appendChild(cell);
+    }
+    bracket.appendChild(inner);
+    wrap.appendChild(bracket);
+  }
+
+  function updatePhiCellDisplay(cell,i,k){
+    if(!cell) cell = $("phi-c-"+i+"-"+k);
+    if(!cell) return;
+    const p = phi[i]?.[k];
+    if(!p) return;
+
+    const kSpan = document.createElement("span");
+    kSpan.className = "k";
+    cell.innerHTML = "";
+    cell.appendChild(kSpan);
+
+    if(p.type === "zero") K(kSpan,"0");
+    else if(p.type === "exp") K(kSpan,p.alpha.toFixed(2)+"\\,y\\,e^{-"+p.delta.toFixed(2)+"\\,t}");
+    else K(kSpan,p.alpha.toFixed(2)+"\\cdot"+p.delta.toFixed(2)+"^2\\,y\\,t\\,e^{-"+p.delta.toFixed(2)+"\\,t}");
+
+    const sub = document.createElement("div");
+    sub.className = "mat-cell-sub";
+    sub.textContent = "φ^{"+(i+1)+","+(k+1)+"}";
+    cell.appendChild(sub);
+  }
+
+  async function openPhiEditor(i,k){
+    const p = phi[i][k];
+    let tmpType = p.type, tmpAlpha = p.alpha, tmpDelta = p.delta, sliderAlpha = false, sliderDelta = false;
+
+    const ok = await openPopup("Edit φ^{"+(i+1)+","+(k+1)+"}", content=>{
+      content.innerHTML = `
+        <div class="popup-row"><label>Kernel type</label>
+          <select id="pe-type">
+            <option value="zero">Zero (no excitation)</option>
+            <option value="exp">Exponential: α·y·exp(−δ·t)</option>
+            <option value="erlang">Erlang-2: α·δ²·y·t·exp(−δ·t)</option>
+          </select>
+        </div>
+        <div id="pe-params"></div>`;
+      $("pe-type").value = tmpType;
+
+      function buildParams(){
+        const el = $("pe-params");
+        if(tmpType === "zero"){ el.innerHTML = ""; return; }
+        el.innerHTML = `
+          <div class="popup-row"><label>α (amplitude)</label><input type="number" id="pe-alpha" value="${tmpAlpha}" min="0" max="10" step="0.01"/>
+            <label class="popup-check"><input type="checkbox" id="pe-sl-a" ${sliderAlpha?"checked":""}> Create slider</label></div>
+          <div class="popup-row"><label>δ (decay)</label><input type="number" id="pe-delta" value="${tmpDelta}" min="0" max="10" step="0.01"/>
+            <label class="popup-check"><input type="checkbox" id="pe-sl-d" ${sliderDelta?"checked":""}> Create slider</label></div>`;
+        $("pe-alpha").addEventListener("input", function(){ tmpAlpha = parseFloat(this.value)||0; });
+        $("pe-delta").addEventListener("input", function(){ tmpDelta = parseFloat(this.value)||0; });
+        $("pe-sl-a").addEventListener("change", function(){ sliderAlpha = this.checked; });
+        $("pe-sl-d").addEventListener("change", function(){ sliderDelta = this.checked; });
+      }
+      $("pe-type").addEventListener("change", function(){ tmpType = this.value; buildParams(); });
+      buildParams();
+    });
+
+    if(ok){
+      phi[i][k] = {type:tmpType,alpha:tmpAlpha,delta:tmpDelta};
+      updatePhiCellDisplay(null,i,k);
+      removeDynSlider("phi-a-"+i+"-"+k);
+      removeDynSlider("phi-d-"+i+"-"+k);
+      if(tmpType !== "zero"){
+        if(sliderAlpha) addDynSlider("phi-a-"+i+"-"+k,"φ^{"+(i+1)+","+(k+1)+"} α",phi[i][k],"alpha",0,3,.05);
+        if(sliderDelta) addDynSlider("phi-d-"+i+"-"+k,"φ^{"+(i+1)+","+(k+1)+"} δ",phi[i][k],"delta",0,5,.1);
+      }
+      rebuildDynSliderUI();
+      render();
+    }
+  }
+
+  function buildZetaMatrix(){
+    const wrap = $("ex-zeta-mat");
+    wrap.innerHTML = "";
+    const bracket = document.createElement("div");
+    bracket.className = "mat-bracket";
+    const inner = document.createElement("div");
+    inner.className = "mat-inner";
+    inner.style.gridTemplateColumns = "repeat("+d+",1fr)";
+
+    for(let i=0;i<d;i++) for(let k=0;k<d;k++){
+      const cell = document.createElement("div");
+      cell.className = "mat-cell";
+      cell.id = "zeta-c-"+i+"-"+k;
+      updateZetaCellDisplay(cell,i,k);
+      cell.addEventListener("click", ()=>openZetaEditor(i,k));
+      inner.appendChild(cell);
+    }
+    bracket.appendChild(inner);
+    wrap.appendChild(bracket);
+  }
+
+  function updateZetaCellDisplay(cell,i,k){
+    if(!cell) cell = $("zeta-c-"+i+"-"+k);
+    if(!cell) return;
+    const z = zeta[i]?.[k];
+    if(!z) return;
+
+    const kSpan = document.createElement("span");
+    kSpan.className = "k";
+    cell.innerHTML = "";
+    cell.appendChild(kSpan);
+
+    if(z.type === "zero") K(kSpan,"0");
+    else if(z.tau === 0) K(kSpan,"y");
+    else K(kSpan,"y\\,e^{-"+z.tau.toFixed(2)+"\\,t}");
+
+    const sub = document.createElement("div");
+    sub.className = "mat-cell-sub";
+    sub.textContent = "ζ^{"+(i+1)+","+(k+1)+"}";
+    cell.appendChild(sub);
+  }
+
+  async function openZetaEditor(i,k){
+    const z = zeta[i][k];
+    let tmpType = z.type, tmpTau = z.tau, slTau = false;
+    const ok = await openPopup("Edit ζ^{"+(i+1)+","+(k+1)+"}", content=>{
+      content.innerHTML = `
+        <div class="popup-row"><label>Type</label>
+          <select id="ze-type">
+            <option value="zero">0 (ignore)</option>
+            <option value="mark">y · exp(−τ·t)</option>
+          </select>
+        </div>
+        <div id="ze-params"></div>`;
+      $("ze-type").value = tmpType;
+      function bp(){
+        const el = $("ze-params");
+        if(tmpType==="zero"){ el.innerHTML=""; return; }
+        el.innerHTML = `<div class="popup-row"><label>τ (0 = no actualization)</label><input type="number" id="ze-tau" value="${tmpTau}" min="0" max="5" step="0.01"/>
+          <label class="popup-check"><input type="checkbox" id="ze-sl-t" ${slTau?"checked":""}> Create slider</label></div>`;
+        $("ze-tau").addEventListener("input", function(){ tmpTau = parseFloat(this.value)||0; });
+        $("ze-sl-t").addEventListener("change", function(){ slTau = this.checked; });
+      }
+      $("ze-type").addEventListener("change", function(){ tmpType = this.value; bp(); });
+      bp();
+    });
+    if(ok){
+      zeta[i][k] = {type:tmpType,tau:tmpTau};
+      updateZetaCellDisplay(null,i,k);
+      removeDynSlider("zeta-t-"+i+"-"+k);
+      if(tmpType==="mark" && slTau) addDynSlider("zeta-t-"+i+"-"+k,"ζ^{"+(i+1)+","+(k+1)+"} τ",zeta[i][k],"tau",0,3,.01);
+      rebuildDynSliderUI();
+      render();
+    }
+  }
+
+  function addDynSlider(id,label,obj,key,mn,mx,step){
+    dynSliders = dynSliders.filter(s=>s.id !== id);
+    dynSliders.push({id,label,obj,key,min:mn,max:mx,step});
+  }
+  function removeDynSlider(id){ dynSliders = dynSliders.filter(s=>s.id !== id); }
+
+  function rebuildDynSliderUI(){
+    const el = $("ex-sliders");
+    el.innerHTML = "";
+    dynSliders.forEach(s=>{
+      const div = document.createElement("div");
+      div.className = "sg";
+      div.innerHTML = `<div class="sr"><code>${s.label}</code><span class="sv" id="dsv-${s.id}">${s.obj[s.key].toFixed(2)}</span></div>
+        <input type="range" min="${s.min}" max="${s.max}" step="${s.step}" value="${s.obj[s.key]}"/>`;
+      const sl = div.querySelector("input");
+      sl.addEventListener("input", function(){
+        s.obj[s.key] = parseFloat(this.value);
+        $("dsv-"+s.id).textContent = parseFloat(this.value).toFixed(2);
+        if(s.id.startsWith("phi-")){
+          const parts = s.id.split("-");
+          updatePhiCellDisplay(null,+parts[2],+parts[3]);
+        }
+        if(s.id.startsWith("zeta-")){
+          const parts = s.id.split("-");
+          updateZetaCellDisplay(null,+parts[2],+parts[3]);
+        }
+        render();
+      });
+      el.appendChild(div);
+    });
+  }
+
+  function buildMarks(){
+    const el = $("ex-marks");
+    el.innerHTML = "";
+    for(let k=0;k<d;k++){
+      while(markRates.length<=k) markRates.push(1);
+      const div = document.createElement("div");
+      div.className = "sg";
+      div.innerHTML = `<div class="sr"><span class="k" id="km-lbl-${k}"></span><span class="sv" id="ex-mr${k}">${markRates[k].toFixed(2)}</span></div>
+        <input type="range" min="0.1" max="5" step="0.1" value="${markRates[k]}" data-k="${k}" class="ex-mr-sl"/>`;
+      el.appendChild(div);
+      K("km-lbl-"+k,"\\theta_{"+(k+1)+"}");
+    }
+    el.querySelectorAll(".ex-mr-sl").forEach(sl=>{
+      sl.addEventListener("input", function(){
+        const k = +this.dataset.k;
+        markRates[k] = P(this);
+        $("ex-mr"+k).textContent = markRates[k].toFixed(2);
+      });
+    });
+  }
+
+  function buildMu(){
+    const el = $("ex-mu");
+    el.innerHTML = "";
+    for(let i=0;i<d;i++){
+      while(muType.length<=i){ muType.push("const"); muConst.push(.1); muSinA.push(.2); muSinB.push(.1); muSinW.push(.5); }
+      const div = document.createElement("div");
+      div.style.cssText = "background:var(--inp);border:1px solid var(--brd);border-radius:10px;padding:10px;margin-bottom:6px";
+      div.innerHTML = `<div style="font-family:var(--fm);font-size:12px;color:var(--txm);margin-bottom:6px"><span class="k" id="mu-lbl-${i}"></span></div>
+        <select class="mu-type" data-i="${i}" style="margin-bottom:6px"><option value="const" ${muType[i]==="const"?"selected":""}>Constant</option><option value="sin" ${muType[i]==="sin"?"selected":""}>Sinusoidal A+B·sin(ωt)</option></select>
+        <div id="mu-p${i}"></div>`;
+      el.appendChild(div);
+      K("mu-lbl-"+i,"\\mu^{"+(i+1)+"}(t)");
+      buildMuParams(i);
+    }
+    el.querySelectorAll(".mu-type").forEach(sel=>{
+      sel.addEventListener("change", function(){
+        muType[+this.dataset.i] = this.value;
+        buildMuParams(+this.dataset.i);
+        render();
+      });
+    });
+  }
+
+  function buildMuParams(i){
+    const el = $("mu-p"+i);
+    if(!el) return;
+    if(muType[i] === "const"){
+      el.innerHTML = `<div class="sg"><div class="sr"><code>value</code><span class="sv" id="mu-cv${i}">${muConst[i].toFixed(2)}</span></div><input type="range" min="0" max="3" step="0.01" value="${muConst[i]}" class="mu-cv" data-i="${i}"/></div>`;
+      el.querySelector(".mu-cv").addEventListener("input", function(){
+        muConst[+this.dataset.i] = P(this);
+        $("mu-cv"+this.dataset.i).textContent = P(this).toFixed(2);
+        render();
+      });
+    } else {
+      el.innerHTML = `<div class="ctrl-2">
+        <div class="sg"><div class="sr"><code>A</code><span class="sv" id="mu-sa${i}">${muSinA[i].toFixed(2)}</span></div><input type="range" min="0" max="3" step="0.05" value="${muSinA[i]}" class="mu-sa" data-i="${i}"/></div>
+        <div class="sg"><div class="sr"><code>B</code><span class="sv" id="mu-sb${i}">${muSinB[i].toFixed(2)}</span></div><input type="range" min="0" max="2" step="0.01" value="${muSinB[i]}" class="mu-sb" data-i="${i}"/></div>
+        <div class="sg"><div class="sr"><code>ω</code><span class="sv" id="mu-sw${i}">${muSinW[i].toFixed(2)}</span></div><input type="range" min="0" max="3" step="0.05" value="${muSinW[i]}" class="mu-sw" data-i="${i}"/></div></div>`;
+      el.querySelectorAll(".mu-sa").forEach(s=>s.addEventListener("input", function(){ muSinA[+this.dataset.i]=P(this); $("mu-sa"+this.dataset.i).textContent=P(this).toFixed(2); render(); }));
+      el.querySelectorAll(".mu-sb").forEach(s=>s.addEventListener("input", function(){ muSinB[+this.dataset.i]=P(this); $("mu-sb"+this.dataset.i).textContent=P(this).toFixed(2); render(); }));
+      el.querySelectorAll(".mu-sw").forEach(s=>s.addEventListener("input", function(){ muSinW[+this.dataset.i]=P(this); $("mu-sw"+this.dataset.i).textContent=P(this).toFixed(2); render(); }));
+    }
+  }
+
+  function buildAll(){
+    d = parseInt($("ex-d").value,10);
+    while(phi.length<d) phi.push([]);
+    for(let i=0;i<d;i++) while(phi[i].length<d) phi[i].push({type:"zero",alpha:0,delta:1});
+    while(zeta.length<d) zeta.push([]);
+    for(let i=0;i<d;i++) while(zeta[i].length<d) zeta[i].push({type:"zero",tau:0});
+    buildMarks();
+    buildMu();
+    buildPhiMatrix();
+    buildZetaMatrix();
+    dynSliders = [];
+    rebuildDynSliderUI();
+  }
+
+  function getMu(i,t){
+    if(muType[i] === "const") return muConst[i];
+    return Math.max(0, muSinA[i] + muSinB[i]*Math.sin(muSinW[i]*t));
+  }
+
+  function resetSim(){
+    simTime = 0;
+    events = [];
+    intHist = [];
+    zHist = [];
+    hExp = []; hErl0 = []; hErl1 = []; zState = []; zCur = [];
+    for(let i=0;i<d;i++){
+      hExp[i] = []; hErl0[i] = []; hErl1[i] = []; zState[i] = []; zCur[i] = 0;
+      for(let k=0;k<d;k++){
+        hExp[i][k]=0; hErl0[i][k]=0; hErl1[i][k]=0; zState[i][k]=0;
+      }
+    }
+    render();
+  }
+
+  function simStep(){
+    for(let i=0;i<d;i++) for(let k=0;k<d;k++){
+      const p = phi[i][k];
+      if(p.type === "zero") continue;
+      const dc = Math.exp(-p.delta*dt);
+      if(p.type === "exp") hExp[i][k] *= dc;
+      else {
+        hErl1[i][k] = dc * (hErl1[i][k] + dt*hErl0[i][k]);
+        hErl0[i][k] *= dc;
+      }
+    }
+
+    for(let i=0;i<d;i++) for(let k=0;k<d;k++){
+      const z = zeta[i][k];
+      if(z.type !== "mark" || z.tau === 0) continue;
+      zState[i][k] *= Math.exp(-z.tau*dt);
+    }
+
+    const lam = [];
+    for(let i=0;i<d;i++){
+      let l = getMu(i,simTime);
+      for(let k=0;k<d;k++){
+        const p = phi[i][k];
+        if(p.type === "zero") continue;
+        if(p.type === "exp") l += p.alpha*hExp[i][k];
+        else l += p.alpha*p.delta*p.delta*hErl1[i][k];
+      }
+      lam[i] = Math.max(0.001,l);
+    }
+
+    for(let k=0;k<d;k++){
+      if(Math.random() < 1 - Math.exp(-lam[k]*dt)){
+        const y = sampleExp(markRates[k]);
+        events.push({t:simTime,dim:k,y});
+        for(let i=0;i<d;i++){
+          const p = phi[i][k];
+          if(p.type === "zero") continue;
+          if(p.type === "exp") hExp[i][k] += y;
+          else hErl0[i][k] += y;
+        }
+        for(let i=0;i<d;i++){
+          const z = zeta[i][k];
+          if(z.type !== "mark") continue;
+          zState[i][k] += y;
+        }
+      }
+    }
+
+    for(let i=0;i<d;i++){
+      let z = 0;
+      for(let k=0;k<d;k++) if(zeta[i][k].type === "mark") z += zState[i][k];
+      zCur[i] = z;
+    }
+
+    intHist.push({t:simTime,lam:lam.slice()});
+    zHist.push({t:simTime,z:zCur.slice()});
+
+    const mode = $("ex-mode").value;
+    if(mode === "continuous"){
+      const cut = simTime - winSize;
+      while(intHist.length && intHist[0].t < cut) intHist.shift();
+      while(zHist.length && zHist[0].t < cut) zHist.shift();
+      while(events.length && events[0].t < cut) events.shift();
+    }
+
+    simTime += dt;
+    if(mode === "fixed" && simTime >= P($("ex-T"))) return false;
+    if(mode === "continuous" && (Date.now()-startWall) > maxSec*1000) return false;
+    return true;
+  }
+
+  function drawPanel(ctx,x0,y0,x1,y1,lbl,maxV,gN){
+    ctx.strokeStyle = cvGrid();
+    ctx.lineWidth = 1;
+    ctx.strokeRect(crisp(x0-8), crisp(y0-4), Math.round(x1-x0+16), Math.round(y1-y0+8));
+
+    ctx.fillStyle = cvLabel();
+    ctx.font = "11px 'DM Mono'";
+    ctx.textAlign = "left";
+    ctx.fillText(lbl,x0,y0-2);
+
+    if(gN > 0){
+      for(let i=0;i<=gN;i++){
+        const y = y1 - (i/gN)*(y1-y0);
+        ctx.beginPath();
+        ctx.moveTo(crisp(x0), crisp(y));
+        ctx.lineTo(crisp(x1), crisp(y));
+        ctx.strokeStyle = cvGrid();
+        ctx.stroke();
+        if(maxV > 0){
+          ctx.fillStyle = cvAxis();
+          ctx.font = "10px 'DM Mono'";
+          ctx.textAlign = "right";
+          ctx.fillText((i/gN*maxV).toFixed(1), x0-8, y+3);
+        }
+      }
+    }
+  }
+
+  function render(){
+    const {w:W,h:H} = resizeHiDPICanvas(canvas,c,720,540);
+    c.clearRect(0,0,W,H);
+
+    const mode = $("ex-mode").value;
+    const tMin = mode === "fixed" ? 0 : Math.max(0,simTime-winSize);
+    const tMax = mode === "fixed" ? Math.max(P($("ex-T")),1) : Math.max(simTime,tMin+1);
+
+    const LM = 50, RM = 10, TP = 14;
+    const x0 = LM, x1 = W-RM;
+    const intH = Math.floor((H-TP-30)/3), evH = 60, zH = H-TP-intH-evH-18-30;
+    const intBot = TP+intH, evTop = intBot+6, evBot = evTop+evH, zTop = evBot+6, zBot = zTop+zH;
+
+    let maxL = 0;
+    intHist.forEach(h=>h.lam.forEach(l=>{ if(l>maxL) maxL = l; }));
+    maxL = Math.max(maxL*1.2,.5);
+
+    drawPanel(c,x0,TP,x1,intBot,"Intensity λ(t)",maxL,4);
+    for(let i=0;i<d;i++){
+      if(intHist.length < 2) continue;
+      c.beginPath();
+      let started = false;
+      intHist.forEach(h=>{
+        if(h.t < tMin || h.t > tMax) return;
+        const x = x0 + (h.t-tMin)/(tMax-tMin)*(x1-x0);
+        const y = intBot - (h.lam[i]/maxL)*intH;
+        if(started) c.lineTo(x,y); else { c.moveTo(x,y); started = true; }
+      });
+      c.strokeStyle = DC[i];
+      c.lineWidth = 2;
+      c.stroke();
+    }
+
+    drawPanel(c,x0,evTop,x1,evBot,"Events",0,0);
+    const bandH = evH/d;
+    for(let k=0;k<d;k++){
+      const y = evTop + bandH*(k+.5);
+      c.beginPath();
+      c.moveTo(crisp(x0), crisp(y));
+      c.lineTo(crisp(x1), crisp(y));
+      c.strokeStyle = cvGrid();
+      c.lineWidth = 1;
+      c.stroke();
+      c.fillStyle = DC[k];
+      c.font = "10px 'DM Mono'";
+      c.textAlign = "left";
+      c.fillText("Dim "+(k+1),4,y+3);
+    }
+    events.forEach(ev=>{
+      if(ev.t < tMin || ev.t > tMax) return;
+      const x = x0 + (ev.t-tMin)/(tMax-tMin)*(x1-x0);
+      const y = evTop + bandH*(ev.dim+.5);
+      const r = Math.min(2 + Math.sqrt(Math.max(ev.y,0))*1.3, 6);
+      c.beginPath();
+      c.arc(x,y,r,0,Math.PI*2);
+      c.fillStyle = DC[ev.dim];
+      c.fill();
+    });
+
+    let maxZ = 0;
+    zHist.forEach(h=>h.z.forEach(z=>{ if(Math.abs(z)>maxZ) maxZ = Math.abs(z); }));
+    maxZ = Math.max(maxZ*1.2,1);
+
+    drawPanel(c,x0,zTop,x1,zBot,"Z(t)",maxZ,3);
+    for(let i=0;i<d;i++){
+      if(zHist.length < 2) continue;
+      c.beginPath();
+      let started = false;
+      zHist.forEach(h=>{
+        if(h.t < tMin || h.t > tMax) return;
+        const x = x0 + (h.t-tMin)/(tMax-tMin)*(x1-x0);
+        const y = zBot - (h.z[i]/maxZ)*(zBot-zTop);
+        if(started) c.lineTo(x,y); else { c.moveTo(x,y); started = true; }
+      });
+      c.strokeStyle = DC[i];
+      c.lineWidth = 2.2;
+      c.stroke();
+    }
+
+    c.fillStyle = cvAxis();
+    c.font = "11px 'DM Mono'";
+    c.textAlign = "center";
+    for(let i=0;i<=5;i++){
+      c.fillText((tMin + (i/5)*(tMax-tMin)).toFixed(1), x0 + (i/5)*(x1-x0), H-6);
+    }
+  }
+
+  function stepLoop(ts){
+    if(!running) return;
+    if(!lastFrameTs) lastFrameTs = ts;
+    const elapsed = ts - lastFrameTs;
+
+    if(elapsed >= 1000/60){
+      let ok = true;
+      const substeps = 2;
+      for(let i=0;i<substeps;i++){
+        ok = simStep();
+        if(!ok) break;
+      }
+      render();
+
+      const mode = $("ex-mode").value;
+      if(mode === "continuous"){
+        $("ex-timer").style.width = Math.min(100,(Date.now()-startWall)/(maxSec*1000)*100)+"%";
+      } else {
+        $("ex-timer").style.width = Math.min(100,simTime/P($("ex-T"))*100)+"%";
+      }
+
+      lastFrameTs = ts;
+
+      if(!ok){
+        stop();
+        return;
+      }
+    }
+
+    rafId = requestAnimationFrame(stepLoop);
+  }
+
+  function start(){
+    if(running) return;
+    running = true;
+    startWall = Date.now();
+    lastFrameTs = 0;
+    $("ex-status").innerHTML = '<span class="sdot on"></span>Running';
+    $("ex-play").textContent = "⏸ Pause";
+    rafId = requestAnimationFrame(stepLoop);
+  }
+
+  function stop(){
+    running = false;
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    $("ex-status").innerHTML = '<span class="sdot off"></span>Done';
+    $("ex-play").textContent = "▶ Play";
+  }
+
+  $("ex-play").addEventListener("click", ()=> running ? stop() : start());
+  $("ex-reset").addEventListener("click", ()=>{
+    stop();
+    resetSim();
+    $("ex-timer").style.width = "0%";
+  });
+  $("ex-d").addEventListener("change", ()=>{
+    buildAll();
+    stop();
+    resetSim();
+  });
+  $("ex-mode").addEventListener("change", ()=>{
+    $("ex-T-wrap").style.display = $("ex-mode").value === "fixed" ? "block" : "none";
+    updateMCVis();
+    render();
+  });
+  $("ex-T").addEventListener("input", ()=>{
+    $("ex-T-val").textContent = P($("ex-T")).toFixed(0);
+    render();
+  });
+
+  window.addEventListener("resize", render);
+
+  buildAll();
+  resetSim();
+  return {getD,getConfig,getMu};
+})();
+
+/* ═══ MC VISIBILITY ═══ */
+function updateMCVis(){
+  $("mc-disabled").style.display = $("ex-mode").value === "fixed" ? "none" : "block";
+  $("mc-panel").style.display = $("ex-mode").value === "fixed" ? "block" : "none";
+}
+updateMCVis();
+$("mc-N").addEventListener("input", ()=>{ $("mc-N-val").textContent = $("mc-N").value; });
+$("mc-q").addEventListener("input", ()=>{ $("mc-q-val").textContent = P($("mc-q")).toFixed(2); });
+
+$("mc-run").addEventListener("click", function(){
+  const cfg = EX.getConfig(), d = cfg.d, T = P($("ex-T")), N = parseInt($("mc-N").value,10), q = P($("mc-q"));
+  const dt = .1, steps = Math.floor(T/dt);
+  $("mc-status").textContent = "Running...";
+  const cDiv = $("mc-canvases"), resDiv = $("mc-results");
+  cDiv.innerHTML = ""; resDiv.innerHTML = "";
+  const cvs = [];
+
+  for(let i=0;i<d;i++){
+    const w = document.createElement("div");
+    w.className = "cframe";
+    w.style.marginTop = "8px";
+    const cv = document.createElement("canvas");
+    cv.width = 700;
+    cv.height = 200;
+    cv.style.width = "100%";
+    cv.style.height = "200px";
+    w.appendChild(cv);
+    cDiv.appendChild(w);
+    cvs.push(cv);
+  }
+
+  const zF = [];
+  for(let i=0;i<d;i++) zF.push([]);
+  let done = 0;
+
+  function chunk(){
+    const batch = Math.min(30, N-done);
+    for(let sim=0;sim<batch;sim++){
+      const hE=[], hR0=[], hR1=[], zS=[];
+      for(let i=0;i<d;i++){
+        hE[i]=[]; hR0[i]=[]; hR1[i]=[]; zS[i]=[];
+        for(let k=0;k<d;k++){ hE[i][k]=0; hR0[i][k]=0; hR1[i][k]=0; zS[i][k]=0; }
+      }
+
+      for(let s=0;s<steps;s++){
+        const t = s*dt;
+        for(let i=0;i<d;i++) for(let k=0;k<d;k++){
+          const p = cfg.phi[i][k];
+          if(p.type === "zero") continue;
+          const dc = Math.exp(-p.delta*dt);
+          if(p.type === "exp") hE[i][k] *= dc;
+          else {
+            hR1[i][k] = dc*(hR1[i][k] + dt*hR0[i][k]);
+            hR0[i][k] *= dc;
+          }
+        }
+
+        for(let i=0;i<d;i++) for(let k=0;k<d;k++){
+          const z = cfg.zeta[i][k];
+          if(z.type !== "mark" || z.tau === 0) continue;
+          zS[i][k] *= Math.exp(-z.tau*dt);
+        }
+
+        const lam = [];
+        for(let i=0;i<d;i++){
+          let l = cfg.muType[i] === "const" ? cfg.muConst[i] : Math.max(0,cfg.muSinA[i]+cfg.muSinB[i]*Math.sin(cfg.muSinW[i]*t));
+          for(let k=0;k<d;k++){
+            const p = cfg.phi[i][k];
+            if(p.type === "zero") continue;
+            if(p.type === "exp") l += p.alpha*hE[i][k];
+            else l += p.alpha*p.delta*p.delta*hR1[i][k];
+          }
+          lam[i] = Math.max(.001,l);
+        }
+
+        for(let k=0;k<d;k++){
+          if(Math.random() < 1 - Math.exp(-lam[k]*dt)){
+            const y = sampleExp(cfg.markRates[k]);
+            for(let i=0;i<d;i++){
+              const p = cfg.phi[i][k];
+              if(p.type === "zero") continue;
+              if(p.type === "exp") hE[i][k] += y;
+              else hR0[i][k] += y;
+            }
+            for(let i=0;i<d;i++){
+              const z = cfg.zeta[i][k];
+              if(z.type !== "mark") continue;
+              zS[i][k] += y;
+            }
+          }
+        }
+      }
+
+      for(let i=0;i<d;i++){
+        let z = 0;
+        for(let k=0;k<d;k++) if(cfg.zeta[i][k].type === "mark") z += zS[i][k];
+        zF[i].push(z);
+      }
+    }
+
+    done += batch;
+    $("mc-status").textContent = "Running... "+done+"/"+N;
+    if(done < N) setTimeout(chunk,0);
+    else finalize();
+  }
+
+  function drawHist(canvas, vals, mean, varQ, q05, q50, q, di){
+    const ctx = canvas.getContext("2d");
+    const {w:W,h:H} = resizeHiDPICanvas(canvas,ctx,700,200);
+    ctx.clearRect(0,0,W,H);
+
+    const pad = {l:50,r:20,t:24,b:28}, pW = W-pad.l-pad.r, pH = H-pad.t-pad.b;
+    const mn = vals[0], mx = vals[vals.length-1];
+    const nBins = Math.min(40, Math.max(8, Math.floor(Math.sqrt(vals.length))));
+    const bW = (mx-mn)/nBins || 1;
+    const bins = new Array(nBins).fill(0);
+
+    vals.forEach(v=>{
+      let idx = Math.floor((v-mn)/bW);
+      if(idx >= nBins) idx = nBins-1;
+      if(idx < 0) idx = 0;
+      bins[idx]++;
+    });
+
+    const maxB = Math.max(...bins);
+
+    for(let i=0;i<nBins;i++){
+      const x = pad.l + (i/nBins)*pW;
+      const w = pW/nBins - 1;
+      const h = (bins[i]/maxB)*pH;
+      ctx.fillStyle = DCA[di]+".4)";
+      ctx.fillRect(x,pad.t+pH-h,w,h);
+    }
+
+    function vline(val,col,lbl,yOff){
+      if(val < mn || val > mx || mx===mn) return;
+      const x = pad.l + ((val-mn)/(mx-mn))*pW;
+      ctx.beginPath();
+      ctx.setLineDash([4,3]);
+      ctx.moveTo(x,pad.t);
+      ctx.lineTo(x,pad.t+pH);
+      ctx.strokeStyle = col;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = col;
+      ctx.font = "11px 'DM Mono'";
+      ctx.textAlign = "center";
+      ctx.fillText(lbl,x,pad.t-4+yOff);
+    }
+
+    vline(mean,"#34d399","E[Z]",0);
+    vline(q50,"#94a3b8","median",12);
+    vline(q05,"#a78bfa","q₀.₀₅",0);
+    vline(varQ,"#fbbf24","q"+q.toFixed(2),12);
+
+    ctx.fillStyle = cvAxis();
+    ctx.font = "11px 'DM Mono'";
+    ctx.textAlign = "center";
+    for(let i=0;i<=5;i++) ctx.fillText((mn+(i/5)*(mx-mn)).toFixed(1), pad.l+(i/5)*pW, H-8);
+
+    ctx.textAlign = "left";
+    ctx.fillStyle = DC[di];
+    ctx.font = "12px 'DM Mono'";
+    ctx.fillText("Z^"+(di+1)+"_T", pad.l, pad.t-8);
+  }
+
+  function finalize(){
+    $("mc-status").textContent = "Done ("+N+" sims)";
+    for(let i=0;i<d;i++){
+      const vals = zF[i].slice().sort((a,b)=>a-b);
+      const mean = vals.reduce((a,b)=>a+b,0)/N;
+      const variance = vals.reduce((a,b)=>a+(b-mean)**2,0)/N;
+      const std = Math.sqrt(variance);
+      const qIdx = Math.min(Math.floor(q*N),N-1);
+      const varQ = vals[qIdx];
+      const q05 = vals[Math.min(Math.floor(.05*N),N-1)];
+      const q50 = vals[Math.min(Math.floor(.5*N),N-1)];
+
+      const row = document.createElement("div");
+      row.className = "mc-grid";
+      row.style.marginTop = "8px";
+      row.innerHTML = `<div class="mc-s"><div class="mc-l" style="color:${DC[i]}">E[Z<sup>${i+1}</sup>] MC</div><div class="mc-v">${mean.toFixed(2)}</div></div>
+        <div class="mc-s"><div class="mc-l">Std</div><div class="mc-v">${std.toFixed(2)}</div></div>
+        <div class="mc-s"><div class="mc-l">Median</div><div class="mc-v">${q50.toFixed(2)}</div></div>
+        <div class="mc-s"><div class="mc-l">VaR<sub>${q.toFixed(2)}</sub></div><div class="mc-v">${varQ.toFixed(2)}</div></div>`;
+      resDiv.appendChild(row);
+
+      drawHist(cvs[i], vals, mean, varQ, q05, q50, q, i);
+    }
+  }
+
+  chunk();
+});
+
+/* ═══════════════════════════════════════
+   STRESS TESTING — retina + rAF
+   ═══════════════════════════════════════ */
+(function(){
+  const canvas = $("st-canvas");
+  const c = canvas.getContext("2d");
+  const dt = .05;
+  let scenario = [], running = false, rafId = null, lastFrameTs = 0, curStep = 0;
+  let baseInt = [], stressInt = [], baseEv = [], stressEv = [], baseLoss = [], stressLoss = [];
+
+  ["st-l0","st-rho","st-delta","st-ec","st-ev","st-HT"].forEach(id=>{
+    $(id).addEventListener("input", function(){
+      $(id+"-val").textContent = P(this).toFixed(2);
+      if(!running) drawEmpty();
+    });
+  });
+
+  function gP(){
+    return {
+      l0:P($("st-l0")),
+      rho:P($("st-rho")),
+      delta:P($("st-delta")),
+      thetaC:P($("st-ec")),
+      thetaV:P($("st-ev")),
+      T:P($("st-HT"))
+    };
+  }
+
+  function dims(){
+    const {w:W,h:H} = resizeHiDPICanvas(canvas,c,720,480);
+    const LM = 50, RM = 10, TP = 14, intH = 145, gH = 6, evH = 70;
+    const lTop = TP+intH+gH+evH+gH, lBot = H-22;
+    return {W,H,LM,RM,TP,intH,gH,evH,lTop,lBot};
+  }
+
+  canvas.addEventListener("click", function(e){
+    const {W,LM,RM,TP,intH,gH,evH} = dims();
+    const pos = logicalPointerPos(e, canvas, 720, 480);
+    const x = pos.x, y = pos.y;
+    const evTop = TP+intH+gH, evBot = evTop+evH;
+    if(x<LM || x>W-RM || y<evTop || y>evBot) return;
+    const p = gP();
+    const t = (x-LM)/(W-LM-RM)*p.T;
+    scenario.push({t,dim:parseInt($("st-type").value,10),sev:parseFloat($("st-sev").value)});
+    $("st-count").textContent = scenario.length+" events";
+    if(baseInt.length===0) drawEmpty();
+  });
+
+  function dP(x0,y0,x1,y1,l){
+    c.strokeStyle = cvGrid();
+    c.lineWidth = 1;
+    c.strokeRect(crisp(x0-8), crisp(y0-4), Math.round(x1-x0+16), Math.round(y1-y0+8));
+    c.fillStyle = cvLabel();
+    c.font = "11px 'DM Mono'";
+    c.textAlign = "left";
+    c.fillText(l,x0,y0-2);
+  }
+
+  function drawEmpty(){
+    const p = gP();
+    const {W,H,LM,RM,TP,intH,gH,evH,lTop,lBot} = dims();
+    const x0 = LM, x1 = W-RM;
+
+    c.clearRect(0,0,W,H);
+    dP(x0,TP,x1,TP+intH,"Intensity λ(t)");
+
+    const eT = TP+intH+gH;
+    dP(x0,eT,x1,eT+evH,"Events");
+
+    ["Claims","Vulns"].forEach((n,k)=>{
+      const y = eT+evH/2*(k+.5);
+      c.beginPath();
+      c.moveTo(crisp(x0), crisp(y));
+      c.lineTo(crisp(x1), crisp(y));
+      c.strokeStyle = cvGrid();
+      c.lineWidth = 1;
+      c.stroke();
+      c.fillStyle = k===0 ? "#fb7185" : "#38bdf8";
+      c.font = "10px 'DM Mono'";
+      c.textAlign = "left";
+      c.fillText(n,4,y+3);
+    });
+
+    dP(x0,lTop,x1,lBot,"Loss L(t)");
+    c.fillStyle = cvAxis();
+    c.font = "11px 'DM Mono'";
+    c.textAlign = "center";
+    for(let i=0;i<=5;i++) c.fillText((i/5*p.T).toFixed(0), x0+(i/5)*(x1-x0), H-6);
+
+    scenario.forEach(ev=>{
+      const x = x0 + (ev.t/p.T)*(x1-x0);
+      const y = TP+intH+gH+evH/2*(ev.dim+.5);
+      const r = 3 + ev.sev;
+      c.beginPath();
+      c.arc(x,y,r,0,Math.PI*2);
+      c.lineWidth = 2;
+      c.strokeStyle = "#fbbf24";
+      c.stroke();
+      c.fillStyle = "#fbbf24";
+      c.font = "9px 'DM Mono'";
+      c.textAlign = "center";
+      c.fillText(ev.sev.toFixed(1),x,y-r-3);
+    });
+  }
+
+  function runSim(){
+    running = false;
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+
+    const p = gP(), steps = Math.floor(p.T/dt);
+    curStep = 0;
+    baseInt=[]; stressInt=[]; baseEv=[]; stressEv=[]; baseLoss=[]; stressLoss=[];
+
+    const rU=[], rM=[];
+    for(let k=0;k<2;k++){
+      rU[k]=[]; rM[k]=[];
+      for(let j=0;j<steps;j++){
+        rU[k][j] = Math.random();
+        rM[k][j] = sampleExp(k===0 ? p.thetaC : p.thetaV);
+      }
+    }
+
+    const vU=[], vM=[];
+    for(let j=0;j<steps;j++){
+      vU[j] = Math.random();
+      vM[j] = sampleExp(p.thetaV);
+    }
+
+    let bh=0, sh=0, bv=0, sv=0, bL=0, sL=0;
+
+    function step(){
+      if(curStep >= steps) return false;
+      const t = curStep*dt, dc = Math.exp(-p.delta*dt);
+
+      bh *= dc; sh *= dc; bv *= dc; sv *= dc;
+
+      scenario.forEach(ev=>{
+        const idx = Math.round(ev.t/dt);
+        if(idx === curStep){
+          if(ev.dim===0) sh += ev.sev;
+          else sv += ev.sev;
+        }
+      });
+
+      if(vU[curStep] < 1 - Math.exp(-p.rho*dt)){
+        const y = vM[curStep];
+        bv += y; sv += y;
+        baseEv.push({t,dim:1,y});
+        stressEv.push({t,dim:1,y});
+      }
+
+      const blC = Math.max(.01,p.l0+bh+bv);
+      const slC = Math.max(.01,p.l0+sh+sv);
+
+      baseInt.push({t,lC:blC});
+      stressInt.push({t,lC:slC});
+
+      const u = rU[0][curStep], y = rM[0][curStep];
+      if(u < 1 - Math.exp(-blC*dt)){ baseEv.push({t,dim:0,y}); bh += y; bL += y; }
+      if(u < 1 - Math.exp(-slC*dt)){ stressEv.push({t,dim:0,y}); sh += y; sL += y; }
+
+      scenario.forEach(ev=>{
+        const idx = Math.round(ev.t/dt);
+        if(idx === curStep && ev.dim===0) sL += ev.sev;
+      });
+
+      baseLoss.push({t,L:bL});
+      stressLoss.push({t,L:sL});
+      curStep++;
+      return curStep < steps;
+    }
+
+    function renderFrame(){
+      const p2 = gP();
+      const {W,H,LM,RM,TP,intH,gH,evH,lTop,lBot} = dims();
+      const x0 = LM, x1 = W-RM;
+
+      c.clearRect(0,0,W,H);
+
+      let mxL = 0;
+      baseInt.forEach(h=>{ if(h.lC>mxL) mxL=h.lC; });
+      stressInt.forEach(h=>{ if(h.lC>mxL) mxL=h.lC; });
+      mxL = Math.max(mxL*1.2,1);
+
+      let mxLs = 0;
+      baseLoss.forEach(h=>{ if(h.L>mxLs) mxLs=h.L; });
+      stressLoss.forEach(h=>{ if(h.L>mxLs) mxLs=h.L; });
+      mxLs = Math.max(mxLs*1.2,1);
+
+      const intBot = TP+intH;
+      dP(x0,TP,x1,intBot,"Intensity λ(t)");
+
+      for(let i=0;i<=3;i++){
+        const y = intBot-(i/3)*intH;
+        c.beginPath();
+        c.moveTo(crisp(x0), crisp(y));
+        c.lineTo(crisp(x1), crisp(y));
+        c.strokeStyle = cvGrid();
+        c.stroke();
+        c.fillStyle = cvAxis();
+        c.font = "10px 'DM Mono'";
+        c.textAlign = "right";
+        c.fillText((i/3*mxL).toFixed(1), x0-8, y+3);
+      }
+
+      function dCv(data,key,col,dash){
+        c.beginPath();
+        c.setLineDash(dash?[4,4]:[]);
+        let st=false;
+        data.forEach(h=>{
+          const x = x0+(h.t/p2.T)*(x1-x0);
+          const y = intBot-(h[key]/mxL)*intH;
+          if(st) c.lineTo(x,y); else { c.moveTo(x,y); st=true; }
+        });
+        c.strokeStyle = col;
+        c.lineWidth = dash ? 1.2 : 2;
+        c.stroke();
+        c.setLineDash([]);
+      }
+
+      dCv(baseInt,"lC","rgba(251,113,133,.35)",true);
+      dCv(stressInt,"lC","#fb7185",false);
+
+      const eT = intBot+gH, eB = eT+evH;
+      dP(x0,eT,x1,eB,"Events");
+
+      ["Claims","Vulns"].forEach((n,k)=>{
+        const y = eT+evH/2*(k+.5);
+        c.beginPath();
+        c.moveTo(crisp(x0), crisp(y));
+        c.lineTo(crisp(x1), crisp(y));
+        c.strokeStyle = cvGrid();
+        c.lineWidth = 1;
+        c.stroke();
+        c.fillStyle = k===0 ? "#fb7185" : "#38bdf8";
+        c.font = "10px 'DM Mono'";
+        c.textAlign = "left";
+        c.fillText(n,4,y+3);
+      });
+
+      baseEv.forEach(ev=>{
+        const x = x0+(ev.t/p2.T)*(x1-x0), y = eT+evH/2*(ev.dim+.5);
+        c.beginPath(); c.arc(x,y,2,0,Math.PI*2);
+        c.fillStyle = cvGrid(); c.fill();
+      });
+
+      stressEv.forEach(ev=>{
+        const x = x0+(ev.t/p2.T)*(x1-x0), y = eT+evH/2*(ev.dim+.5);
+        c.beginPath(); c.arc(x,y,2.5,0,Math.PI*2);
+        c.fillStyle = ev.dim===0 ? "#fb7185" : "#38bdf8";
+        c.fill();
+      });
+
+      scenario.forEach(ev=>{
+        const x = x0+(ev.t/p2.T)*(x1-x0), y = eT+evH/2*(ev.dim+.5), r = 3+ev.sev;
+        c.beginPath(); c.arc(x,y,r,0,Math.PI*2);
+        c.lineWidth = 2;
+        c.strokeStyle = "#fbbf24";
+        c.stroke();
+        c.fillStyle = "#fbbf24";
+        c.font = "9px 'DM Mono'";
+        c.textAlign = "center";
+        c.fillText(ev.sev.toFixed(1), x, y-r-3);
+      });
+
+      dP(x0,lTop,x1,lBot,"Loss L(t)");
+      for(let i=0;i<=3;i++){
+        const y = lBot-(i/3)*(lBot-lTop);
+        c.fillStyle = cvAxis();
+        c.font = "10px 'DM Mono'";
+        c.textAlign = "right";
+        c.fillText((i/3*mxLs).toFixed(0), x0-8, y+3);
+      }
+
+      if(baseLoss.length>1 && stressLoss.length>1){
+        c.beginPath();
+        for(let i=0;i<stressLoss.length;i++){
+          const x = x0+(stressLoss[i].t/p2.T)*(x1-x0), y = lBot-(stressLoss[i].L/mxLs)*(lBot-lTop);
+          i===0 ? c.moveTo(x,y) : c.lineTo(x,y);
+        }
+        for(let i=baseLoss.length-1;i>=0;i--){
+          const x = x0+(baseLoss[i].t/p2.T)*(x1-x0), y = lBot-(baseLoss[i].L/mxLs)*(lBot-lTop);
+          c.lineTo(x,y);
+        }
+        c.closePath();
+        c.fillStyle = "rgba(251,191,36,.1)";
+        c.fill();
+      }
+
+      function dL(data,col,dash){
+        c.beginPath();
+        c.setLineDash(dash?[4,4]:[]);
+        let st=false;
+        data.forEach(h=>{
+          const x = x0+(h.t/p2.T)*(x1-x0), y = lBot-(h.L/mxLs)*(lBot-lTop);
+          if(st) c.lineTo(x,y); else { c.moveTo(x,y); st=true; }
+        });
+        c.strokeStyle = col;
+        c.lineWidth = dash ? 1.2 : 2;
+        c.stroke();
+        c.setLineDash([]);
+      }
+
+      dL(baseLoss,"rgba(251,191,36,.35)",true);
+      dL(stressLoss,"#fbbf24",false);
+
+      c.fillStyle = cvAxis();
+      c.font = "11px 'DM Mono'";
+      c.textAlign = "center";
+      for(let i=0;i<=5;i++) c.fillText((i/5*p2.T).toFixed(0), x0+(i/5)*(x1-x0), H-6);
+    }
+
+    function loop(ts){
+      if(!running) return;
+      if(!lastFrameTs) lastFrameTs = ts;
+      const elapsed = ts - lastFrameTs;
+
+      if(elapsed >= 1000/60){
+        let ok = true;
+        for(let i=0;i<2;i++){
+          ok = step();
+          if(!ok) break;
+        }
+        renderFrame();
+        lastFrameTs = ts;
+
+        if(!ok){
+          running = false;
+          const bF = baseLoss.length ? baseLoss[baseLoss.length-1].L : 0;
+          const sF = stressLoss.length ? stressLoss[stressLoss.length-1].L : 0;
+          $("stv-dl").textContent = (sF-bF).toFixed(3);
+          $("stv-bc").textContent = baseEv.filter(e=>e.dim===0).length;
+          $("stv-sc").textContent = stressEv.filter(e=>e.dim===0).length;
+          return;
+        }
+      }
+
+      rafId = requestAnimationFrame(loop);
+    }
+
+    running = true;
+    lastFrameTs = 0;
+    rafId = requestAnimationFrame(loop);
+  }
+
+  $("st-sim").addEventListener("click", runSim);
+  $("st-clear").addEventListener("click", ()=>{
+    scenario = [];
+    $("st-count").textContent = "0 events";
+    running = false;
+    if(rafId){
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+    baseInt=[]; stressInt=[]; baseEv=[]; stressEv=[]; baseLoss=[]; stressLoss=[];
+    $("stv-dl").textContent = "—";
+    $("stv-bc").textContent = "—";
+    $("stv-sc").textContent = "—";
+    drawEmpty();
+  });
+
+  window.addEventListener("resize", ()=>{ if(!running) drawEmpty(); });
+  drawEmpty();
+})();
+
+/* ═══ INIT KaTeX ═══ */
+renderAllStatic();
+
+})();
+</script>
+</body>
+</html>
