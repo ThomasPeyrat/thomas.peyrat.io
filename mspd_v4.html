@@ -157,8 +157,8 @@ html.light #ex-sliders .sg{background:var(--pnl)}
       </div>
 
       <p style="margin-top:14px;font-size:13px;color:var(--txm)">
-        <a href="https://arxiv.org/abs/2503.15958" target="_blank">Hillairet, Peyrat &amp; Réveillac (2025)</a> ·
-        <a href="https://arxiv.org/abs/2311.15701" target="_blank">Boumezoued et al. (2023)</a>
+        <a href="https://hal.science/hal-04997515" target="_blank">Hillairet, Peyrat &amp; Réveillac (2026)</a> ·
+        <a href="https://hal.science/hal-05558990" target="_blank">Cherkaoui,Hillairet, Peyrat &amp; Réveillac (2026)</a>
       </p>
     </div>
     <div style="border-radius:var(--rl);border:1px solid var(--brd);overflow:hidden;background:var(--pnl);margin-top:20px">
@@ -172,18 +172,97 @@ html.light #ex-sliders .sg{background:var(--pnl)}
   <div class="container">
     <div class="pill">Theory</div>
     <h2>What is an MSPD?</h2>
-    <p class="lead">Traditional models assume claims arrive independently (Poisson). For cyber risk, past events excite future ones and severity feeds back into frequency. MSPDs capture this.</p>
-    <div class="expl"><strong>Key idea:</strong> Each event increases the probability of future events through excitation kernels. Larger events produce stronger aftershocks. The framework unifies counting, loss, and intensity processes.</div>
-    <div id="theory-eq1" style="text-align:center;margin:16px 0"></div>
-    <div id="theory-eq2" style="text-align:center;margin:16px 0"></div>
-    <p style="font-size:14px;color:var(--txm);max-width:700px;margin-top:12px">
-      The matrix <span id="k-phi-ref"></span> encodes self- and cross-excitation. The observation kernel <span id="k-zeta-ref"></span> determines <em>what</em> is measured (counting, loss, discounted loss…). Marks <span id="k-y"></span> enter multiplicatively.
+    <p class="lead">In classical actuarial models, claims arrive independently — each event has no memory of the past. Real risks, especially cyber, don't work this way: one breach triggers others, and the size of an event shapes how likely future events are. MSPDs are built to capture exactly this.</p>
+
+    <div class="expl">
+      <strong>Core idea.</strong> An MSPD is a stochastic process defined on a Poisson random measure — a mathematical object that generates events continuously over time, each carrying a random size (mark). What makes MSPDs non-trivial is that the <em>rate</em> at which events occur depends on the full past trajectory, weighted by how large each past event was.
+    </div>
+
+    <!-- Main equations -->
+    <div id="theory-eq1" style="text-align:center;margin:20px 0 8px"></div>
+    <div id="theory-eq2" style="text-align:center;margin:8px 0 20px"></div>
+
+    <!-- Why a Poisson measure -->
+    <h3>Why a Poisson random measure?</h3>
+    <p style="font-size:14px;color:var(--tx);max-width:720px;line-height:1.7;margin-bottom:10px">
+      The Poisson random measure <code style="font-family:var(--fm);font-size:13px;color:var(--cy)">N(dk,dt,dθ,dy)</code> is a random cloud of points on a product space. Each point carries four coordinates: a <strong style="color:var(--txb)">component index k</strong> (which dimension of the risk), a <strong style="color:var(--txb)">time t</strong>, a <strong style="color:var(--txb)">uniform threshold θ</strong>, and a <strong style="color:var(--txb)">mark y</strong> (the severity).
+    </p>
+    <p style="font-size:14px;color:var(--tx);max-width:720px;line-height:1.7;margin-bottom:10px">
+      The <em>thinning</em> trick is the key mechanism: a point in the cloud becomes a real event only when its threshold satisfies <code style="font-family:var(--fm);font-size:13px;color:var(--cy)">θ ≤ λ(t)</code>. Since the intensity <code style="font-family:var(--fm);font-size:13px;color:var(--cy)">λ(t)</code> jumps upward each time an event is accepted, the acceptance probability increases — this is how self-excitation is encoded at the measure level, without needing to keep track of a list of past events explicitly.
+    </p>
+
+    <!-- Parameter cards -->
+    <h3 style="margin-top:22px">The four building blocks</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:10px 0 22px">
+
+      <div class="card" style="border-left:3px solid var(--co)">
+        <div style="font-family:var(--fm);font-size:17px;font-weight:500;color:var(--txb);margin-bottom:4px"><span id="k-mu-card"></span></div>
+        <div style="font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);margin-bottom:8px">Baseline intensity</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">The background rate of events in dimension <em>i</em>, in the absence of any past excitation. Can be time-varying to model seasonality or a known trend.</p>
+      </div>
+
+      <div class="card" style="border-left:3px solid var(--cy)">
+        <div style="font-family:var(--fm);font-size:17px;font-weight:500;color:var(--txb);margin-bottom:4px"><span id="k-phi-card"></span></div>
+        <div style="font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);margin-bottom:8px">Excitation kernel</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">How much a past event of size <em>y</em> in dimension <em>k</em> raises the rate in dimension <em>i</em>, as a function of elapsed time. Off-diagonal entries encode cross-contagion between lines of business.</p>
+      </div>
+
+      <div class="card" style="border-left:3px solid var(--vi)">
+        <div style="font-family:var(--fm);font-size:17px;font-weight:500;color:var(--txb);margin-bottom:4px"><span id="k-zeta-card"></span></div>
+        <div style="font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);margin-bottom:8px">Observation kernel</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">Determines <em>what</em> the process measures. Set to <code style="font-family:var(--fm)">1{i=k}</code> to count events, to <code style="font-family:var(--fm)">y</code> for cumulative losses, or to <code style="font-family:var(--fm)">y·e<sup>−τt</sup></code> for actualized losses.</p>
+      </div>
+
+      <div class="card" style="border-left:3px solid var(--em)">
+        <div style="font-family:var(--fm);font-size:17px;font-weight:500;color:var(--txb);margin-bottom:4px"><span id="k-y-card"></span></div>
+        <div style="font-family:var(--fm);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--txm);margin-bottom:8px">Severity mark</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">The random size attached to each event (claim amount, vulnerability score…). Its distribution enters both the observation and the excitation, creating a <strong style="color:var(--txb)">frequency–severity dependency</strong> absent from standard Hawkes processes.</p>
+      </div>
+
+    </div>
+
+    <!-- What parameters control -->
+    <h3>What the parameters control</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:10px 0 22px">
+
+      <div style="background:var(--card);border:1px solid var(--brd);border-radius:var(--rl);padding:14px 16px">
+        <div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--txb);margin-bottom:6px">Memory length</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">The decay rate <code style="font-family:var(--fm);color:var(--cy)">δ</code> in φ governs how long a past event keeps influencing future ones. Small δ = long memory. Power-law alternatives give even heavier tails, relevant for cyber incidents that propagate over months.</p>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--brd);border-radius:var(--rl);padding:14px 16px">
+        <div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--txb);margin-bottom:6px">Severity feeding frequency</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">When φ<sup>i,k</sup>(t, y) depends non-trivially on <em>y</em>, a large loss doesn't just count as one event — it contributes proportionally more to future excitation. This breaks the classical independence between N and the mark sequence Y<sub>i</sub>.</p>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--brd);border-radius:var(--rl);padding:14px 16px">
+        <div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--txb);margin-bottom:6px">Cross-dimension contagion</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">Off-diagonal entries φ<sup>i,k</sup> with i ≠ k model spillovers across lines of business or risk types — a ransomware event in one sector triggering claims in another.</p>
+      </div>
+
+      <div style="background:var(--card);border:1px solid var(--brd);border-radius:var(--rl);padding:14px 16px">
+        <div style="font-family:var(--fm);font-size:12px;font-weight:500;color:var(--txb);margin-bottom:6px">Stability condition</div>
+        <p style="font-size:13px;color:var(--tx);line-height:1.6;margin:0">The spectral radius of the branching matrix <code style="font-family:var(--fm);color:var(--cy)">K = ∫φ̄(t)dt</code> must be below 1. If it exceeds 1, each event produces on average more than one offspring and the process explodes — an actuarially non-viable regime.</p>
+      </div>
+
+    </div>
+
+    <!-- Kernel reference (existing) -->
+    <p style="font-size:14px;color:var(--txm);max-width:700px;margin-top:4px">
+      The matrix <span id="k-phi-ref"></span> encodes self- and cross-excitation. The observation kernel <span id="k-zeta-ref"></span> determines <em>what</em> is measured. Marks <span id="k-y"></span> enter multiplicatively through both.
     </p>
     <p style="font-size:14px;color:var(--txm);max-width:700px;margin-top:8px">
-      <strong>Available kernels below:</strong> Exponential <span id="k-exp-def"></span> and Erlang-2 <span id="k-erl-def"></span>. Marks follow <span id="k-mark-def"></span> distributions.
+      <strong style="color:var(--tx)">Available kernels below:</strong> Exponential <span id="k-exp-def"></span> and Erlang-2 <span id="k-erl-def"></span>. Marks follow <span id="k-mark-def"></span> distributions.
     </p>
+
+    <p style="font-size:13px;color:var(--txm);max-width:720px;line-height:1.6;margin-top:12px">
+      The explorer and stress-testing tools below let you configure this exact setup — tune μ, α, δ, and the severity distribution to observe how each parameter shapes the trajectory, the intensity path, and the correlation structure.
+    </p>
+
   </div>
 </section>
+
+
 <div class="divider"></div>
 
 <section id="explorer">
@@ -409,6 +488,10 @@ function K(el,tex,display){
   try{ katex.render(tex, el, {displayMode:!!display, throwOnError:false}); }catch(e){}
 }
 function renderAllStatic(){
+  K("k-mu-card","\\mu^i(t)");
+  K("k-phi-card","\\boldsymbol{\\varphi}^{i,k}(t,y)");
+  K("k-zeta-card","\\boldsymbol{\\zeta}^{i,k}(t,y)");
+  K("k-y-card","Y^k \\sim \\nu^k");
   K("theory-eq1","\\boldsymbol{Z}^i_T = \\int_{\\mathbf{X}_T} \\boldsymbol{\\zeta}^{i,k}(T-t,\\,y)\\,\\mathbf{1}_{\\{\\theta \\leq \\boldsymbol{\\lambda}^k_t\\}}\\,\\mathbf{N}(dk,dt,d\\theta,dy)",true);
   K("theory-eq2","\\boldsymbol{\\lambda}^i_T = \\boldsymbol{\\mu}^i(T) + \\int_{\\mathbf{X}_T} \\boldsymbol{\\varphi}^{i,k}(T-t,\\,y)\\,\\mathbf{1}_{\\{\\theta \\leq \\boldsymbol{\\lambda}^k_t\\}}\\,\\mathbf{N}(dk,dt,d\\theta,dy)",true);
   K("k-phi-ref","\\boldsymbol{\\varphi}");
