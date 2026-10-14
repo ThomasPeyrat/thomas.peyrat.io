@@ -12,4 +12,4 @@ Boards and regulators ask “what if” questions: what happens to the loss dist
 
 ## The approach
 
-We model cyber losses as multivariate self-exciting processes with dependencies, where vulnerability disclosures excite claims. A stress scenario is a set of deterministic events added to the process. Pseudo-chaotic decompositions and shifted-path operators give the explicit contribution of each scenario to quantities such as the expected surplus and its variance, which can be translated into stress-testing tools for practitioners. Future work extends these methods to climate-related and longevity risks, and to simulation-based inference for larger data sets.
+We model cyber losses as multivariate self-exciting processes with dependencies, where vulnerability disclosures excite claims. A stress scenario is a set of deterministic events added to the process. Pseudo-chaotic decompositions and shifted-path operators give the explicit contribution of each scenario to quantities such as the expected surplus and its variance, which can be translated into stress-testing tools for practitioners.
