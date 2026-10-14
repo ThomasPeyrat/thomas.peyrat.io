@@ -1,0 +1,19 @@
+---
+import { url, coauthors, statusLabel, paperLinks, type Pub } from '../lib/format';
+interface Props { paper: Pub }
+const { paper } = Astro.props;
+const d = paper.data;
+const others = coauthors(d.authors);
+---
+<li class="row paper" data-status={d.status}>
+  <a class="t" href={url(`publications/${paper.id}/`)}><span class="u">{d.title}</span></a>
+  <span class:list={['side', 'caps', 'status', { published: d.status === 'published' }]}>{statusLabel[d.status]}</span>
+  <p class="sub">
+    {others && <span>With {others}</span>}
+    {others && d.journal && <span aria-hidden="true"> · </span>}
+    {d.journal && <i>{d.journal}{d.volume && ` ${d.volume}`}</i>}
+  </p>
+  {paperLinks(d).length > 0 && (
+    <p class="sub links caps">{paperLinks(d).map(([l, h]) => <a class="u" href={h} rel="noopener">{l}</a>)}</p>
+  )}
+</li>

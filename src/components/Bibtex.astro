@@ -1,0 +1,30 @@
+---
+interface Props { code: string }
+const { code } = Astro.props;
+---
+<figure class="bib">
+  <figcaption class="caps"><span class="mid">BibTeX</span><button type="button" class="copy caps" data-copy>Copy</button></figcaption>
+  <pre><code>{code}</code></pre>
+</figure>
+
+<script>
+  const bind = () => document.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => {
+    if (b.dataset.bound) return; b.dataset.bound = '1';
+    b.addEventListener('click', async () => {
+      const code = b.closest('figure')?.querySelector('code');
+      if (!code) return;
+      try { await navigator.clipboard.writeText(code.textContent ?? ''); b.textContent = 'Copied'; }
+      catch { const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s?.removeAllRanges(); s?.addRange(r); b.textContent = 'Selected'; }
+      setTimeout(() => (b.textContent = 'Copy'), 1800);
+    });
+  });
+  bind(); document.addEventListener('astro:page-load', bind);
+</script>
+
+<style>
+  .bib { margin: 0; border-top: 1px solid var(--hair); padding-top: 14px; min-width: 0; max-width: 100%; }
+  figcaption { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .copy { font: inherit; letter-spacing: inherit; background: none; border: 0; color: var(--ink); cursor: pointer; padding: 0; }
+  .copy:hover { text-decoration: underline; text-underline-offset: 4px; }
+  pre { margin: 0; padding: 16px 18px; background: var(--wash); overflow-x: auto; font: 400 .8125rem/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; }
+</style>

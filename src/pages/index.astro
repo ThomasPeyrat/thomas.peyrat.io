@@ -1,0 +1,109 @@
+---
+import Base from '../layouts/Base.astro';
+import { Picture } from 'astro:assets';
+import { getCollection, render } from 'astro:content';
+import portrait from '../assets/portrait.jpg';
+import { site } from '../site.config';
+import { url, monthYear } from '../lib/format';
+import HawkesLine from '../components/HawkesLine.astro';
+
+const news = (await getCollection('news')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+const now = news[0];
+const { Content: NowText } = now ? await render(now) : { Content: null };
+const p = site.position;
+---
+<Base>
+  <!-- One block: the text column runs exactly the height of the portrait, top and bottom edges shared. -->
+  <section class="hero wrap" aria-label="Introduction">
+    <figure class="photo">
+      <Picture src={portrait} alt={`Portrait of ${site.name}`} formats={['avif', 'webp']}
+        widths={[280, 400, 560, 760]} sizes="(max-width: 700px) 70vw, 380px"
+        loading="eager" fetchpriority="high" decoding="async" />
+    </figure>
+    <div class="copy">
+      <p class="caps mid enter" style="--d: .5s">{site.fields.join(' — ')}</p>
+      <h1 class="title">
+        <span class="pos enter" style="--d: .75s">{p.title}</span>
+        <span class="aff enter" style="--d: 1.05s"><a class="u" href={p.labUrl} rel="noopener">{p.lab}</a></span>
+        <span class="aff enter" style="--d: 1.25s">{p.chair}</span>
+      </h1>
+      <div class="live enter" style="--d: 1.6s"><HawkesLine /></div>
+      <p class="summary mid enter" style="--d: 1.45s">{site.summary}</p>
+    </div>
+  </section>
+
+  <section class="index wrap" aria-label="Index">
+    <span class="rule" aria-hidden="true"></span>
+    <div class="col enter" style="--d: 1.9s">
+      <h2 class="caps mid">The work</h2>
+      <ul>
+        <li><a class="mark u" href={url('research/')}>Research</a></li>
+        <li><a class="mark u" href={url('publications/')}>Publications</a></li>
+        <li><a class="mark u" href={url('talks/')}>Talks</a></li>
+      </ul>
+    </div>
+    <div class="right">
+    <div class="col enter" style="--d: 2.05s">
+      <h2 class="caps mid">Teaching &amp; notes</h2>
+      <ul>
+        <li><a class="mark u" href={url('teaching/')}>Teaching</a></li>
+        <li><a class="mark u" href={url('primer/')}>Primer</a></li>
+        <li><a class="mark u" href={url('cv/')}>Curriculum vitae</a></li>
+      </ul>
+    </div>
+    <div class="col now enter" style="--d: 2.2s">
+      <h2 class="caps mid">Now</h2>
+      {now && NowText && (
+        <div class="news">
+          <span class="when mark">{now.data.when ?? monthYear(now.data.date)}</span>
+          <NowText />
+        </div>
+      )}
+    </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* Two columns shared by the whole page: the lead column is the width of the portrait,
+     the second holds the text. Hero and index use the same template, so everything lines up. */
+  .hero, .index { --lead: clamp(220px, 26vw, 380px); display: grid; grid-template-columns: var(--lead) minmax(0, 1fr); column-gap: clamp(32px, 6vw, 112px); }
+
+  /* Very wide screens: the block keeps its proportions and sits in the middle of the page. */
+  .hero, .index { max-width: calc(1240px + 2 * var(--gutter)); margin-inline: auto; }
+  .hero { padding-block: clamp(48px, 10vh, 120px); align-items: stretch; }
+  .photo { margin: 0; aspect-ratio: 4 / 5; overflow: hidden; background: #2A2B27; view-transition-name: portrait; animation: unveil 2.4s .15s var(--slow) both; }
+  .photo :global(picture) { display: block; height: 100%; }
+  .photo :global(img) { width: 100%; height: 100%; object-fit: cover; object-position: 50% 20%; animation: settle 3.2s .15s var(--slow) both; }
+  @keyframes unveil { from { clip-path: inset(100% 0 0 0); } to { clip-path: inset(0); } }
+  @keyframes settle { from { transform: scale(1.06); } to { transform: none; } }
+
+  /* Elements arrive one after the other: a slow rise, staggered by --d. */
+  .enter { animation: tp-arrive 1.8s var(--d, 0s) var(--slow) both; }
+
+  /* eyebrow on the top edge of the photo, summary on its bottom edge; the live process fills the middle */
+  .copy { display: grid; grid-template-rows: auto auto 1fr auto; row-gap: clamp(18px, 2.6vh, 30px); min-width: 0; }
+  .title { display: grid; gap: 6px; font-family: var(--f-mark); font-weight: 400; margin: 0; }
+  .pos { font-size: clamp(2.3rem, 4.4vw, 4.4rem); line-height: 1.02; letter-spacing: -.01em; margin-bottom: clamp(6px, 1.2vh, 14px); }
+  .aff { font-size: clamp(1.25rem, 1.9vw, 1.75rem); line-height: 1.25; }
+  .live { align-self: center; max-width: 560px; width: 100%; }
+  .summary { max-width: 48ch; }
+
+  .index { position: relative; padding-block: clamp(48px, 8vh, 96px) 0; row-gap: 40px; }
+  /* the dividing line draws itself from left to right, slowly */
+  .rule { position: absolute; top: 0; left: var(--gutter); right: var(--gutter); height: 1px; background: var(--hair); transform-origin: left; animation: tp-draw 2.6s 1.7s var(--slow) both; }
+  .right { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: clamp(24px, 4vw, 64px); row-gap: 40px; }
+  .col { display: grid; gap: 16px; align-content: start; }
+  .col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  .col li a { font-size: clamp(1.375rem, 1.9vw, 1.75rem); line-height: 1.25; }
+  .news { max-width: 36ch; }
+  .news .when { display: block; font-size: 1.375rem; margin-bottom: 6px; }
+
+  /* Narrow screens: one column, portrait first and kept small */
+  @media (max-width: 700px) {
+    .hero, .index, .right { grid-template-columns: minmax(0, 1fr); }
+    .hero { row-gap: 32px; padding-top: 32px; }
+    .photo { width: min(52vw, 220px); }
+    .copy { grid-template-rows: none; }
+  }
+</style>

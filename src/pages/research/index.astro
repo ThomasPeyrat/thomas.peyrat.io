@@ -1,0 +1,42 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import { getCollection } from 'astro:content';
+import { url, coauthors } from '../../lib/format';
+
+const topics = (await getCollection('research')).sort((a, b) => a.data.order - b.data.order);
+const papers = await getCollection('publications');
+const count = (id: string) => papers.filter((p) => p.data.research.some((r) => r.id === id)).length;
+---
+<Base title="Research" description="Research lines of Thomas Peyrat: self-exciting processes, Malliavin calculus on Poisson space, stress testing.">
+  <PageHead eyebrow={`Research · ${topics.length} lines of work`} title="Research" lede="Each line of work is told as a short case study: the question, the approach, and the papers." />
+  <ol class="topics wrap">
+    {topics.map((t) => (
+      <li>
+        <a class="topic grid" href={url(`research/${t.id}/`)}>
+          <span class="period caps mid">{t.data.period.start}–{t.data.period.end ?? ''}</span>
+          <span class="body">
+            <span class="title mark"><span class="u">{t.data.title}</span></span>
+            <span class="summary mid">{t.data.summary}</span>
+          </span>
+          <span class="meta caps mid">
+            {t.data.collaborators.length > 0 && <span>With {coauthors(t.data.collaborators)}</span>}
+            <span>{count(t.id) === 0 ? 'Work in progress' : `${count(t.id)} ${count(t.id) === 1 ? 'paper' : 'papers'}`}</span>
+          </span>
+        </a>
+      </li>
+    ))}
+  </ol>
+</Base>
+
+<style>
+  .topics { list-style: none; margin: 0; }
+  .topic { padding-block: clamp(28px, 4vh, 44px); border-bottom: 1px solid var(--hair); align-items: start; row-gap: 12px; }
+  .period { grid-column: 1 / span 2; padding-top: .7em; }
+  .body { grid-column: 3 / span 6; display: grid; gap: 12px; }
+  .title { font-size: var(--t-h2); line-height: 1.12; text-wrap: balance; }
+  .summary { max-width: 52ch; }
+  .meta { grid-column: 10 / span 3; display: grid; gap: 6px; padding-top: .7em; }
+  .topic:hover .u { background-size: 100% 1px; }
+  @media (max-width: 900px) { .period, .body, .meta { grid-column: 1 / -1; padding-top: 0; } }
+</style>

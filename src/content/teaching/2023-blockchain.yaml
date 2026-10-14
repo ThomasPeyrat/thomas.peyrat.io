@@ -1,0 +1,5 @@
+kind: supervision
+title: Blockchain pool management
+start: 2023
+end: 2024
+description: A miner–manager model for crypto-pool management and allocation strategies.

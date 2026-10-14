@@ -1,0 +1,5 @@
+kind: supervision
+title: Wildfire analytics
+start: 2023
+end: 2024
+description: Log-Gaussian Cox processes and Pareto severities to assess climate-change impacts on wildfires in French regions.

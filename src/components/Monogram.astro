@@ -1,0 +1,19 @@
+---
+/**
+ * The TP monogram: the crossbar of the T turns into the bowl of the P,
+ * both letters share one stem. Drawn on a 100 × 116 grid.
+ */
+interface Props { size?: number; label?: string; class?: string }
+const { size = 32, label, class: cls } = Astro.props;
+const h = Math.round(size * 1.16);
+---
+<svg class:list={['monogram', cls]} viewBox="0 0 100 116" width={size} height={h}
+  role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : 'true'}>
+  <g fill="currentColor" fill-rule="evenodd">
+    <path d="M4 10H42V15.6H4Z" />
+    <path d="M4 10H8V25H4Z" />
+    <path d="M42 10H54V104H42Z" />
+    <path d="M32 101H64V104.6H32Z" />
+    <path d="M54 10H66C83 10 92 20.5 92 33C92 45.5 83 56 66 56H54ZM54 15.6H65C75.5 15.6 80.5 23.5 80.5 33C80.5 42.5 75.5 50.4 65 50.4H54Z" />
+  </g>
+</svg>

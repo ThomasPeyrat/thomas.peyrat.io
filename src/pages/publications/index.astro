@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import PaperRow from '../../components/PaperRow.astro';
+import { getCollection } from 'astro:content';
+import { byRecency, statusLabel } from '../../lib/format';
+
+const papers = (await getCollection('publications')).sort(byRecency);
+const years = [...new Set(papers.map((p) => p.data.year))].sort((a, b) => b - a);
+const statuses = (['published', 'accepted', 'revision', 'submitted', 'preprint'] as const).filter((s) => papers.some((p) => p.data.status === s));
+---
+<Base title="Publications" description="Papers and preprints by Thomas Peyrat, with abstracts and BibTeX.">
+  <PageHead eyebrow={`Index · ${papers.length} papers`} title="Publications" lede="Papers and preprints, newest first. Each entry opens on its abstract, links and BibTeX." />
+
+  <div class="wrap">
+    <div class="filters caps" role="group" aria-label="Filter by status" hidden>
+      <button type="button" data-f="all" aria-pressed="true">All</button>
+      {statuses.map((s) => <button type="button" data-f={s} aria-pressed="false">{statusLabel[s]}</button>)}
+    </div>
+    {years.map((y) => (
+      <section class="year-block grid" data-year={y} aria-labelledby={`y${y}`}>
+        <h2 class="year" id={`y${y}`}>{y}</h2>
+        <ul class="rows">{papers.filter((p) => p.data.year === y).map((p) => <PaperRow paper={p} />)}</ul>
+      </section>
+    ))}
+  </div>
+</Base>
+
+<script>
+  const bind = () => {
+    const bar = document.querySelector<HTMLElement>('.filters');
+    if (!bar || bar.dataset.bound) return; bar.dataset.bound = '1'; bar.hidden = false;
+    const buttons = [...bar.querySelectorAll<HTMLButtonElement>('button')];
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+      const f = b.dataset.f;
+      document.querySelectorAll<HTMLElement>('.paper').forEach((r) => { r.hidden = !(f === 'all' || r.dataset.status === f); });
+      document.querySelectorAll<HTMLElement>('.year-block').forEach((y) => { y.hidden = !y.querySelector('.paper:not([hidden])'); });
+    }));
+  };
+  bind(); document.addEventListener('astro:page-load', bind);
+</script>
+
+<style>
+  .filters { display: flex; gap: 8px 22px; flex-wrap: wrap; padding-block: 22px; border-bottom: 1px solid var(--hair); }
+  .filters button { font: inherit; letter-spacing: inherit; text-transform: inherit; background: none; border: 0; padding: 0 0 2px; cursor: pointer; color: var(--mid); }
+  .filters button[aria-pressed="true"] { color: var(--ink); box-shadow: inset 0 -1px 0 currentColor; }
+  .filters button:hover { color: var(--ink); }
+</style>

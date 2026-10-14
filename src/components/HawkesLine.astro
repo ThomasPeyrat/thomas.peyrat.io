@@ -1,0 +1,165 @@
+---
+/**
+ * A live Hawkes process, drawn as a seismograph line.
+ *
+ * Model: λ(t) = μ + Σ_{T_i < t} α e^{−β (t − T_i)},  μ = 0.35, α = 0.9, β = 1.2  (branching ratio α/β = 0.75).
+ * Simulation: Ogata's thinning, exact for this kernel (λ is non-increasing between events, so λ(t+)
+ * is a valid bound until the next event). Seeded PRNG (mulberry32): every visitor sees the same path.
+ * The pen draws a first window, slowing down smoothly to the cruising speed of the scrolling paper.
+ * Vertical scale: follows the maximum of λ over the visible window plus a few time units ahead,
+ * smoothed in time, and never below the visible maximum, so the curve is never clipped.
+ * Reduced motion: one still window, no animation loop.
+ */
+---
+<figure class="hawkes" data-hawkes aria-hidden="true">
+  <canvas></canvas>
+</figure>
+
+<script>
+  const MU = 0.35, ALPHA = 0.9, BETA = 1.2;
+  const WINDOW = 46;          // time units across the width
+  const DRAW_SECONDS = 6;     // duration of the first pass of the pen
+  const CRUISE = 2.4;         // then the paper scrolls at this many time units per second
+  const LOOKAHEAD = 6;        // the scale anticipates bursts this far ahead
+  const SCALE_TAU = 0.9;      // seconds, smoothing of the vertical scale
+  const SEED = 1789;
+
+  function rng(seed: number) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /** Exact event stream (Ogata). `until(T)` extends the simulation to time T. */
+  function hawkes(seed: number) {
+    const u = rng(seed), events: number[] = [];
+    let t = 0, excess = 0;               // λ(t+) − μ just after the current time
+    return {
+      events,
+      until(T: number) {
+        while (true) {
+          const bound = MU + excess;
+          const s = t - Math.log(1 - u()) / bound;
+          if (s > T) { excess *= Math.exp(-BETA * (T - t)); t = T; return; }
+          excess *= Math.exp(-BETA * (s - t)); t = s;
+          if (u() * bound <= MU + excess) { events.push(t); excess += ALPHA; }
+        }
+      },
+    };
+  }
+
+  /** λ(x−) from the sorted event times. */
+  function lambdaAt(events: number[], x: number) {
+    let l = MU;
+    for (let i = events.length - 1; i >= 0; i--) {
+      const d = x - events[i];
+      if (d <= 0) continue;
+      const c = ALPHA * Math.exp(-BETA * d);
+      if (c < 1e-4) break;
+      l += c;
+    }
+    return l;
+  }
+  /** max of λ on [a, b]: λ only peaks right after events. */
+  function maxOn(events: number[], a: number, b: number) {
+    let m = lambdaAt(events, a);
+    for (const e of events) { if (e <= a) continue; if (e > b) break; m = Math.max(m, lambdaAt(events, e) + ALPHA); }
+    return m;
+  }
+
+  /** Time at the pen after `el` seconds: decelerating first pass, then constant cruise. */
+  function penTime(el: number) {
+    if (el >= DRAW_SECONDS) return WINDOW + (el - DRAW_SECONDS) * CRUISE;
+    // f(x) = a x + (1 − a) x², with f'(1) · WINDOW / DRAW_SECONDS = CRUISE: no jolt at the hand-over
+    const a = 2 - (CRUISE * DRAW_SECONDS) / WINDOW, x = el / DRAW_SECONDS;
+    return WINDOW * (a * x + (1 - a) * x * x);
+  }
+
+  function mount(fig: HTMLElement) {
+    if (fig.dataset.bound) return; fig.dataset.bound = '1';
+    const cv = fig.querySelector('canvas')!;
+    const ctx = cv.getContext('2d')!;
+    const H = hawkes(SEED);
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let start = performance.now(), last = start, raf = 0, visible = true, scale = 0;
+
+    const ink = () => getComputedStyle(document.documentElement).getPropertyValue('--ink').trim();
+
+    function frame(now: number) {
+      const r = cv.getBoundingClientRect();
+      const dpr = Math.min(2, devicePixelRatio || 1);
+      if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)) {
+        cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+      }
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = r.width, h = r.height, base = h - 2, top = 3;
+      const el = reduced ? DRAW_SECONDS : (now - start) / 1000;
+      const tEnd = penTime(el), t0 = Math.max(0, tEnd - WINDOW);
+      H.until(tEnd + LOOKAHEAD + 1);
+      const evs = H.events;
+
+      // vertical scale: smoothed target, never below what is on screen
+      const visibleMax = maxOn(evs, t0, tEnd);
+      const target = Math.max(visibleMax, maxOn(evs, t0, tEnd + LOOKAHEAD)) * 1.08;
+      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      scale = scale === 0 || reduced ? target : scale + (target - scale) * (1 - Math.exp(-dt / SCALE_TAU));
+      const yMax = Math.max(scale, visibleMax * 1.02);
+
+      const sx = (t: number) => ((t - t0) / WINDOW) * w;
+      const sy = (l: number) => base - (l / yMax) * (base - top);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = ink(); ctx.lineWidth = 1; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      const step = WINDOW / Math.max(240, w);
+      let k = 0; while (k < evs.length && evs[k] <= t0) k++;
+      let x = t0, first = true;
+      while (x <= tEnd) {
+        while (k < evs.length && evs[k] <= x) {   // exact jump at each event
+          const e = evs[k], before = lambdaAt(evs, e);
+          if (first) { ctx.moveTo(sx(e), sy(before)); first = false; } else ctx.lineTo(sx(e), sy(before));
+          ctx.lineTo(sx(e), sy(before + ALPHA)); k++;
+        }
+        const y = sy(lambdaAt(evs, x));
+        if (first) { ctx.moveTo(sx(x), y); first = false; } else ctx.lineTo(sx(x), y);
+        x += step;
+      }
+      ctx.stroke();
+      if (!reduced) { ctx.fillStyle = ink(); ctx.beginPath(); ctx.arc(sx(tEnd), sy(lambdaAt(evs, tEnd)), 1.8, 0, 7); ctx.fill(); }
+
+      if (!reduced && visible) raf = requestAnimationFrame(frame);
+    }
+
+    // pause when off screen or in a background tab (the clock pauses too)
+    const resume = () => { last = performance.now(); raf = requestAnimationFrame(frame); };
+    let pausedAt = 0;
+    const setVisible = (v: boolean) => {
+      if (v === visible) return;
+      visible = v;
+      if (!v) { pausedAt = performance.now(); cancelAnimationFrame(raf); }
+      else { start += performance.now() - pausedAt; resume(); }
+    };
+    new IntersectionObserver(([e]) => setVisible(e.isIntersecting && !document.hidden)).observe(fig);
+    document.addEventListener('visibilitychange', () => setVisible(!document.hidden));
+    // redraw once on theme or size change when the loop is not running
+    const redraw = () => { if (reduced || !visible) frame(performance.now()); };
+    new MutationObserver(redraw).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    matchMedia('(prefers-color-scheme: dark)').addEventListener('change', redraw);
+    addEventListener('resize', redraw);
+    start = last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+
+  const init = () => document.querySelectorAll<HTMLElement>('[data-hawkes]').forEach(mount);
+  init();
+  document.addEventListener('astro:page-load', init);
+</script>
+
+<style>
+  .hawkes { margin: 0; }
+  canvas { display: block; width: 100%; height: clamp(64px, 10vh, 104px); }
+</style>

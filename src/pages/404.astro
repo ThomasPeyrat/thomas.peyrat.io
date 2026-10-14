@@ -1,0 +1,11 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { url } from '../lib/format';
+---
+<Base title="Not found">
+  <PageHead eyebrow="404" title="This page does not exist." lede="The address may have changed with the new site.">
+    <p class="back"><a class="button caps" href={url('')}>Back to the front page</a></p>
+  </PageHead>
+</Base>
+<style>.back { grid-column: 9 / span 4; } @media (max-width: 900px) { .back { grid-column: 1 / -1; } }</style>

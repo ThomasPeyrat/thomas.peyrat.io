@@ -1,0 +1,22 @@
+---
+import 'katex/dist/katex.min.css';
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getEntry, render } from 'astro:content';
+
+const page = await getEntry('pages', 'primer');
+if (!page) throw new Error('src/content/pages/primer.md is missing');
+const { Content } = await render(page);
+---
+<Base title={page.data.title} description={page.data.description}>
+  <PageHead eyebrow={page.data.eyebrow ?? 'Notes'} title={page.data.title} lede={page.data.description} />
+  <div class="wrap grid body">
+    <div class="prose"><Content /></div>
+  </div>
+</Base>
+
+<style>
+  .body { padding-top: clamp(36px, 6vh, 64px); }
+  .prose { grid-column: 3 / span 7; }
+  @media (max-width: 900px) { .prose { grid-column: 1 / -1; } }
+</style>

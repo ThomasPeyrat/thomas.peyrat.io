@@ -1,0 +1,39 @@
+---
+import { site } from '../site.config';
+import Monogram from './Monogram.astro';
+const p = site.profiles;
+const profiles = ([
+  ['HAL', p.hal], ['arXiv', p.arxiv], ['ORCID', p.orcid], ['Scholar', p.scholar], ['LinkedIn', p.linkedin], ['GitHub', p.github],
+] as [string, string | undefined][]).filter(([, href]) => !!href) as [string, string][];
+const year = new Date().getFullYear();
+---
+<!-- The house green appears once per page, here: a slim band on the same two columns as the page. -->
+<footer class="house" transition:animate="none">
+  <div class="inner">
+    <Monogram size={22} />
+    <div class="line">
+      <address>{site.address.join(', ')} · <span class="mail">{site.email}</span></address>
+      <div class="meta">
+        {profiles.length > 0 && (
+          <ul class="links caps" aria-label="Elsewhere">{profiles.map(([label, href]) => <li><a class="u" href={href} rel="me noopener">{label}</a></li>)}</ul>
+        )}
+        <p class="caps fine">© {year} · CC BY 4.0</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .house { background: var(--house); color: var(--on-house); margin-top: clamp(56px, 10vh, 120px); padding: 22px var(--gutter); }
+  .inner { --lead: clamp(220px, 26vw, 380px); max-width: 1240px; margin-inline: auto; display: grid; grid-template-columns: var(--lead) minmax(0, 1fr); column-gap: clamp(32px, 6vw, 112px); align-items: center; }
+  .line { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 32px; font-size: .875rem; }
+  address { font-style: normal; }
+  .links { list-style: none; margin: 0; padding: 0; display: flex; gap: 20px; color: var(--on-house-2); }
+  .links a:hover, .links a:focus-visible { color: var(--on-house); }
+  .meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 32px; }
+  .fine { color: var(--on-house-2); }
+  @media (max-width: 700px) {
+    .inner { grid-template-columns: minmax(0, 1fr); row-gap: 16px; }
+    .line, .meta { flex-direction: column; align-items: flex-start; }
+  }
+</style>

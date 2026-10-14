@@ -1,0 +1,49 @@
+---
+import 'katex/dist/katex.min.css';
+import Base from '../../layouts/Base.astro';
+import PaperRow from '../../components/PaperRow.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { url, byRecency, joinNames } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const topics = await getCollection('research');
+  return topics.map((topic) => ({ params: { id: topic.id }, props: { topic } }));
+}
+interface Props { topic: CollectionEntry<'research'> }
+const { topic } = Astro.props;
+const d = topic.data;
+const { Content } = await render(topic);
+const papers = (await getCollection('publications')).filter((p) => p.data.research.some((r) => r.id === topic.id)).sort(byRecency);
+---
+<Base title={d.title} description={d.summary}>
+  <article>
+    <header class="page-head long grid wrap">
+      <p class="eyebrow caps"><a class="u" href={url('research/')}>Research</a> · {d.period.start}–{d.period.end ?? ''}</p>
+      <h1 transition:name="page-title">{d.title}</h1>
+      <p class="lede">{d.summary}</p>
+    </header>
+    <div class="body wrap grid">
+      <dl class="cartouche">
+        <div><dt class="caps">Period</dt><dd>{d.period.start}–{d.period.end ?? 'ongoing'}</dd></div>
+        {d.collaborators.length > 0 && <div><dt class="caps">With</dt><dd>{joinNames(d.collaborators)}</dd></div>}
+        <div><dt class="caps">Papers</dt><dd>{papers.length === 0 ? 'Work in progress' : papers.length}</dd></div>
+      </dl>
+      <div class="prose"><Content /></div>
+    </div>
+    {papers.length > 0 && (
+      <section class="year-block grid wrap papers" aria-labelledby="papers">
+        <h2 class="year" id="papers">Papers</h2>
+        <ul class="rows">{papers.map((p) => <PaperRow paper={p} />)}</ul>
+      </section>
+    )}
+  </article>
+</Base>
+
+<style>
+  .body { padding-block: clamp(36px, 6vh, 64px); row-gap: 40px; align-items: start; }
+  .cartouche { grid-column: 1 / span 3; }
+  .prose { grid-column: 5 / span 7; }
+  .prose :global(h2:first-child) { margin-top: 0; }
+  .papers { border-top: 1px solid var(--hair); }
+  @media (max-width: 900px) { .cartouche, .prose { grid-column: 1 / -1; } }
+</style>

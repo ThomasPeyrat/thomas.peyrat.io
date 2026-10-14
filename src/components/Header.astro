@@ -1,0 +1,58 @@
+---
+import { nav, site } from '../site.config';
+import { url, isCurrent } from '../lib/format';
+import Monogram from './Monogram.astro';
+import ThemeToggle from './ThemeToggle.astro';
+const here = Astro.url.pathname;
+const home = here === url('');
+---
+<header class="header" transition:animate="none" data-intro={home ? '' : undefined}>
+  <nav class="side l caps" aria-label="Work">
+    <a class="seal" href={url('')} aria-label="Home"><Monogram size={17} /></a>
+    {nav.left.map((n) => <a class="u" href={url(n.href)} aria-current={isCurrent(here, n.href) ? 'page' : undefined}>{n.label}</a>)}
+  </nav>
+  <a class="wordmark" href={url('')} aria-current={home ? 'page' : undefined} data-intro={home ? '' : undefined}>
+    <span aria-hidden="true">{site.name.toUpperCase()}</span><span class="sr-only">{site.name}, home</span>
+  </a>
+  <nav class="side r caps" aria-label="More">
+    {nav.right.map((n) => <a class="u" href={url(n.href)} aria-current={isCurrent(here, n.href) ? 'page' : undefined}>{n.label}</a>)}
+    <ThemeToggle />
+  </nav>
+  <details class="menu">
+    <summary class="caps">Menu</summary>
+    <nav aria-label="Main">
+      {[...nav.left, ...nav.right].map((n) => <a class="mark" href={url(n.href)} aria-current={isCurrent(here, n.href) ? 'page' : undefined}>{n.label}</a>)}
+    </nav>
+  </details>
+</header>
+
+<style>
+  .header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; height: var(--header-h); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding-inline: var(--gutter); background: var(--ground); }
+  /* the line under the header; on the home page it draws itself, slowly */
+  .header::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 1px; background: var(--hair); transform-origin: left; }
+  .header[data-intro]::after { animation: tp-draw 2.8s .2s var(--slow) both; }
+  .side { display: flex; align-items: center; gap: clamp(14px, 2.1vw, 32px); }
+  .side.r { justify-content: flex-end; }
+  .side a { color: var(--ink); }
+  .seal { display: none; }
+  .wordmark { font-family: var(--f-mark); font-size: 1.125rem; letter-spacing: .34em; margin-right: -.34em; white-space: nowrap; }
+  .wordmark[data-intro] { animation: track 2.4s var(--slow) both; }
+  @keyframes track { from { letter-spacing: .62em; margin-right: -.62em; opacity: .55; } to { letter-spacing: .34em; margin-right: -.34em; opacity: 1; } }
+  .menu { display: none; }
+
+  @media (max-width: 900px) {
+    .header { grid-template-columns: auto 1fr auto; }
+    .side.l > a:not(.seal), .side.r > a { display: none; }
+    .seal { display: block; }
+    .wordmark { justify-self: center; font-size: .9375rem; letter-spacing: .24em; margin-right: -.24em; }
+    .wordmark[data-intro] { animation: none; }
+    .side.r { gap: 16px; }
+    .menu { display: block; position: absolute; right: var(--gutter); top: 0; height: var(--header-h); }
+    .menu summary { list-style: none; cursor: pointer; height: var(--header-h); display: flex; align-items: center; }
+    .menu summary::-webkit-details-marker { display: none; }
+    .menu[open] nav { position: fixed; inset: var(--header-h) 0 auto 0; background: var(--ground); border-bottom: 1px solid var(--hair); padding: 18px var(--gutter) 28px; display: grid; gap: 6px; }
+    .menu nav a { font-size: 1.75rem; line-height: 1.3; }
+    .menu nav a[aria-current] { text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 6px; }
+    .side.r { margin-right: 64px; }
+  }
+</style>

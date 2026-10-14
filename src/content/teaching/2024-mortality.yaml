@@ -1,0 +1,5 @@
+kind: supervision
+title: Heat waves and mortality
+start: 2024
+end: 2025
+description: A regime-switching spatio-temporal mortality model for the impact of heat waves in France.

@@ -1,0 +1,47 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getCollection } from 'astro:content';
+import { site } from '../site.config';
+import { url } from '../lib/format';
+
+const sections = (await getCollection('cv')).sort((a, b) => a.data.order - b.data.order);
+---
+<Base title="Curriculum vitae" description="Curriculum vitae of Thomas Peyrat.">
+  <PageHead eyebrow="Curriculum vitae" title="Curriculum vitae" lede="Positions, education and service. Publications, talks and teaching have their own pages.">
+    <p class="dl"><a class="button caps" href={url(site.cvPdf)}>Download the PDF <span aria-hidden="true">↓</span></a></p>
+  </PageHead>
+  <div class="wrap">
+    {sections.map((s) => (
+      <section class="year-block grid" aria-labelledby={`cv-${s.id}`}>
+        <h2 class="year" id={`cv-${s.id}`}>{s.data.title}</h2>
+        <ul class="rows">
+          {s.data.items.map((i) => (
+            <li class="row cv">
+              <span class="when caps mid">{i.when}</span>
+              <span class="what">
+                <span class="t">{i.what}</span>
+                {i.where && <span class="where mid">{i.where}</span>}
+                {i.detail && <span class="detail mid">{i.detail}</span>}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    ))}
+  </div>
+</Base>
+
+<style>
+  .dl { grid-column: 9 / span 4; }
+  .year-block > .year { grid-column: 1 / span 3; font-size: clamp(1.5rem, 2vw, 1.875rem); line-height: 1.1; }
+  .year-block > .rows { grid-column: 4 / -1; }
+  .row.cv { grid-template-columns: 9rem minmax(0, 1fr); }
+  .when { padding-top: .45em; }
+  .what { display: grid; gap: 2px; }
+  .what .t { font-size: 1.25rem; }
+  @media (max-width: 900px) {
+    .dl, .year-block > .year, .year-block > .rows { grid-column: 1 / -1; }
+    .row.cv { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,37 @@
+---
+/** Cycles Auto → Light → Dark. Stored in localStorage; Auto follows the system. */
+---
+<button class="toggle caps" type="button" data-theme-toggle aria-live="polite">Auto</button>
+
+<script>
+  const KEY = 'theme';
+  const order = ['auto', 'light', 'dark'] as const;
+  type Mode = (typeof order)[number];
+  const read = (): Mode => { try { const v = localStorage.getItem(KEY); return (order as readonly string[]).includes(v ?? '') ? (v as Mode) : 'auto'; } catch { return 'auto'; } };
+  const apply = (m: Mode) => {
+    if (m === 'auto') document.documentElement.removeAttribute('data-theme');
+    else document.documentElement.setAttribute('data-theme', m);
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+      b.textContent = m[0].toUpperCase() + m.slice(1);
+      b.setAttribute('aria-label', `Colour theme: ${b.textContent}. Change`);
+    });
+  };
+  const bind = () => {
+    apply(read());
+    document.querySelectorAll<HTMLButtonElement>('[data-theme-toggle]').forEach((b) => {
+      if (b.dataset.bound) return; b.dataset.bound = '1';
+      b.addEventListener('click', () => {
+        const next = order[(order.indexOf(read()) + 1) % order.length];
+        try { localStorage.setItem(KEY, next); } catch {}
+        apply(next);
+      });
+    });
+  };
+  bind();
+  document.addEventListener('astro:page-load', bind);
+</script>
+
+<style>
+  .toggle { font: inherit; letter-spacing: inherit; text-transform: inherit; color: var(--mid); background: none; border: 0; padding: 0 0 2px; cursor: pointer; min-width: 4.2em; text-align: right; }
+  .toggle:hover { color: var(--ink); }
+</style>

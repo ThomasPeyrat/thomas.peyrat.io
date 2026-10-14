@@ -1,0 +1,32 @@
+# Each top-level key is a section of the CV page, shown in `order`.
+positions:
+  title: Positions
+  order: 1
+  items:
+    - { when: "2026–", what: "Postdoctoral researcher, AIDA-F chair", where: "CMAP, École Polytechnique", detail: "With Huyên Pham." }
+    - { when: "2023–2026", what: "Consultant", where: "Exiom Partners", detail: "Regulatory and risk analytics for insurers: Solvency II internal-model components, spatial hail-risk analytics." }
+    - { when: "2023–2025", what: "Teaching assistant", where: "ENSAE Paris" }
+    - { when: "2022", what: "R&D intern", where: "Milliman France", detail: "A stochastic network epidemic model for silent-cyber accumulation." }
+education:
+  title: Education
+  order: 2
+  items:
+    - { when: "2023–2026", what: "PhD in applied mathematics (industrial partnership)", where: "CREST–ENSAE, IMT Toulouse and Exiom Partners", detail: "Advised by Caroline Hillairet and Anthony Réveillac." }
+    - { when: "2021–2022", what: "MSc in actuarial science", where: "Université Paris Dauphine – PSL", detail: "Thesis on silent-cyber accumulation in insurance portfolios." }
+    - { when: "2017–2022", what: "Engineering degree, applied mathematics", where: "INSA Lyon" }
+service:
+  title: Service
+  order: 3
+  items:
+    - { when: "2026", what: "Co-organiser, Mathematical Advances on Emerging Risks (MAER)", where: "Mérida, Mexico" }
+schools:
+  title: Doctoral schools
+  order: 4
+  items:
+    - { when: "2025", what: "Doctoral Colloquium on Risk Analytics", where: "Ca’ Foscari, Venice" }
+skills:
+  title: Languages and tools
+  order: 5
+  items:
+    - { when: "Languages", what: "French and Spanish (native), English (fluent), Portuguese (basic)" }
+    - { when: "Programming", what: "Python, R, C++, Java, SQL, SAS, LaTeX" }

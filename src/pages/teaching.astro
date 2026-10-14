@@ -1,0 +1,48 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+
+type T = CollectionEntry<'teaching'>;
+const all = (await getCollection('teaching')).sort((a, b) => b.data.start - a.data.start || a.data.title.localeCompare(b.data.title));
+const courses = all.filter((t) => t.data.kind === 'course');
+const projects = all.filter((t) => t.data.kind === 'supervision');
+const span = (t: T) => (t.data.end && t.data.end !== t.data.start ? `${t.data.start}–${t.data.end}` : `${t.data.start}`);
+---
+<Base title="Teaching" description="Teaching and project supervision by Thomas Peyrat.">
+  <PageHead eyebrow="Teaching" title="Teaching" lede="Tutorials at ENSAE Paris, and supervision of applied projects in actuarial science, several within the curriculum of the Institut des Actuaires." />
+  <div class="wrap">
+    <section class="year-block grid" aria-labelledby="courses">
+      <h2 class="year" id="courses">Courses</h2>
+      <ul class="rows">
+        {courses.map((c) => (
+          <li class="row">
+            <span class="t">{c.data.title}</span>
+            <span class="side caps">{span(c)}</span>
+            <p class="sub">{[c.data.role, c.data.institution, c.data.level].filter(Boolean).join(' · ')}</p>
+            {c.data.description && <p class="sub">{c.data.description}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+    <section class="year-block grid" aria-labelledby="projects">
+      <h2 class="year" id="projects">Supervised projects</h2>
+      <ul class="rows">
+        {projects.map((c) => (
+          <li class="row">
+            <span class="t">{c.data.title}</span>
+            <span class="side caps">{span(c)}</span>
+            {c.data.description && <p class="sub">{c.data.description}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  </div>
+</Base>
+
+<style>
+  .year-block > .year { font-size: clamp(1.5rem, 2vw, 1.875rem); line-height: 1.1; }
+  .year-block > .year { grid-column: 1 / span 3; }
+  .year-block > .rows { grid-column: 4 / -1; }
+  @media (max-width: 900px) { .year-block > .year, .year-block > .rows { grid-column: 1 / -1; } }
+</style>

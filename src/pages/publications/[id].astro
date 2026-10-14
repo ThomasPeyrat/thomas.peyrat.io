@@ -1,0 +1,53 @@
+---
+import 'katex/dist/katex.min.css';
+import Base from '../../layouts/Base.astro';
+import Bibtex from '../../components/Bibtex.astro';
+import { getCollection, getEntries, render } from 'astro:content';
+import { url, joinNames, isSelf, statusLabel, venue, paperLinks, bibtex, type Pub } from '../../lib/format';
+
+export async function getStaticPaths() {
+  const papers = await getCollection('publications');
+  return papers.map((paper) => ({ params: { id: paper.id }, props: { paper } }));
+}
+interface Props { paper: Pub }
+const { paper } = Astro.props;
+const d = paper.data;
+const { Content } = await render(paper);
+const topics = await getEntries(d.research);
+const description = `${d.title}. ${joinNames(d.authors)}, ${d.year}.`;
+---
+<Base title={d.title} description={description}>
+  <article>
+    <header class="page-head long grid wrap">
+      <p class="eyebrow caps"><a class="u" href={url('publications/')}>Publications</a> · {d.year} · {statusLabel[d.status]}</p>
+      <h1 transition:name="page-title">{d.title}</h1>
+      <p class="lede">
+        {d.authors.map((a, i) => <>{i > 0 && (i === d.authors.length - 1 ? ' and ' : ', ')}<span class:list={{ self: isSelf(a) }}>{a}</span></>)}
+      </p>
+    </header>
+
+    <div class="body wrap grid">
+      <dl class="cartouche caps-dt">
+        {d.journal && <div><dt class="caps">Journal</dt><dd><i>{venue(d)}</i></dd></div>}
+        <div><dt class="caps">Status</dt><dd>{statusLabel[d.status]}</dd></div>
+        {paperLinks(d).length > 0 && <div><dt class="caps">Read</dt><dd class="links caps">{paperLinks(d).map(([l, h]) => <a class="u" href={h} rel="noopener">{l}</a>)}</dd></div>}
+        {topics.length > 0 && <div><dt class="caps">Research</dt><dd>{topics.map((t) => <a class="u topic" href={url(`research/${t.id}/`)}>{t.data.title}</a>)}</dd></div>}
+        {d.keywords.length > 0 && <div><dt class="caps">Keywords</dt><dd class="mid">{d.keywords.join(', ')}</dd></div>}
+      </dl>
+      <div class="main">
+        <h2 class="caps mid">Abstract</h2>
+        <div class="prose"><Content /></div>
+        <Bibtex code={bibtex(paper)} />
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .self { font-weight: 400; }
+  .body { padding-top: clamp(36px, 6vh, 64px); row-gap: 40px; align-items: start; }
+  .cartouche { grid-column: 1 / span 3; }
+  .topic { display: block; width: fit-content; }
+  .main { grid-column: 5 / span 7; display: grid; gap: 22px; min-width: 0; }
+  @media (max-width: 900px) { .cartouche, .main { grid-column: 1 / -1; } }
+</style>

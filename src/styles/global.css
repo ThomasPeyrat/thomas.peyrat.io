@@ -1,0 +1,154 @@
+/* ==========================================================================
+   Thomas Peyrat — house style
+   One ground, one ink, one signature colour (the house green, used once per
+   page: the closing band). Two families: Gilda Display for the wordmark and
+   the voice, Libre Franklin for everything functional.
+   ========================================================================== */
+
+:root {
+  /* colour (light) */
+  --ground: #F3F0E9;          /* écru */
+  --ink: #141B17;             /* green-black */
+  --mid: #5E635B;             /* laine grey, AA on ground */
+  --hair: rgba(20, 27, 23, .15);
+  --wash: rgba(20, 27, 23, .045);
+  --house: #1E3529;           /* house green, closing band only */
+  --on-house: #EEE9DE;
+  --on-house-2: #B9B6AA;
+
+  /* type */
+  --f-mark: "TP Dash", "Gilda Display", "Didot", "Bodoni 72", Georgia, serif;
+  --f-ui: "Libre Franklin Variable", "Libre Franklin", "Franklin Gothic Book", "Helvetica Neue", Arial, sans-serif;
+  --t-caps: .6875rem;   /* 11px, tracked caps */
+  --t-small: .875rem;
+  --t-body: .9375rem;   /* 15px */
+  --t-read: 1.0625rem;  /* long reading text */
+  --t-h3: clamp(1.25rem, 1.6vw, 1.5rem);
+  --t-h2: clamp(1.75rem, 2.6vw, 2.375rem);
+  --t-h1: clamp(2.6rem, 6.2vw, 5.75rem);
+
+  /* layout */
+  --gutter: clamp(18px, 3.2vw, 48px);
+  --gap: clamp(14px, 1.8vw, 28px);
+  --header-h: 72px;
+  --ease: cubic-bezier(.7, 0, .2, 1);
+  --slow: cubic-bezier(.22, .61, .18, 1);   /* long, soft deceleration for entrances */
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #0E1310; --ink: #ECE8DF; --mid: #A3A69E; --hair: rgba(236, 232, 223, .16); --wash: rgba(236, 232, 223, .05);
+    --house: #18291F; --on-house: #ECE8DF; --on-house-2: #A9AA9F; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --ground: #0E1310; --ink: #ECE8DF; --mid: #A3A69E; --hair: rgba(236, 232, 223, .16); --wash: rgba(236, 232, 223, .05);
+  --house: #18291F; --on-house: #ECE8DF; --on-house-2: #A9AA9F; color-scheme: dark;
+}
+
+/* Gilda Display draws its en dash as long as an em dash ("Clark—Ocone").
+   This face supplies U+2013 alone, from Libre Franklin, ahead of Gilda in the stack. */
+@font-face {
+  font-family: "TP Dash";
+  src: url('../../node_modules/@fontsource-variable/libre-franklin/files/libre-franklin-latin-wght-normal.woff2') format('woff2');
+  font-weight: 100 900; font-display: swap; unicode-range: U+2013;
+}
+
+/* ---------- base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+body {
+  margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+  background: var(--ground); color: var(--ink);
+  font: 300 var(--t-body)/1.6 var(--f-ui);
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+}
+main { flex: 1; }
+img, svg { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; font-weight: 400; }
+:focus-visible { outline: 1px solid currentColor; outline-offset: 5px; }
+::selection { background: var(--ink); color: var(--ground); }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.skip { position: absolute; left: -9999px; top: 12px; z-index: 50; background: var(--ground); padding: 8px 12px; }
+.skip:focus { left: 12px; }
+
+/* ---------- primitives ---------- */
+.wrap { padding-inline: var(--gutter); }
+.grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); column-gap: var(--gap); }
+.caps { font-family: var(--f-ui); font-weight: 400; font-size: var(--t-caps); letter-spacing: .22em; text-transform: uppercase; line-height: 1.5; }
+.mid { color: var(--mid); }
+.mark { font-family: var(--f-mark); font-weight: 400; }
+/* underline that draws itself */
+.u { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 2px; transition: background-size .5s var(--ease); }
+.u:hover, .u:focus-visible, .u[aria-current="page"] { background-size: 100% 1px; }
+.rule { border: 0; border-top: 1px solid var(--hair); margin: 0; }
+
+/* ---------- motion ---------- */
+/* Shared keyframes. Everything resolves to its resting state; reduced motion skips it all (see the end of this file). */
+@keyframes tp-arrive { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@keyframes tp-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+/* ---------- page head (inner pages) ---------- */
+.page-head { position: relative; padding-block: clamp(48px, 9vh, 112px) clamp(32px, 5vh, 56px); row-gap: 24px; align-items: end; }
+/* inner pages arrive like the home page, a little quicker; the line under the head draws itself */
+.page-head > * { animation: tp-arrive 1.5s var(--slow) both; }
+.page-head > :nth-child(2) { animation-delay: .15s; }
+.page-head > :nth-child(3) { animation-delay: .35s; }
+.page-head > :nth-child(n+4) { animation-delay: .5s; }
+.page-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--hair); transform-origin: left; animation: tp-draw 2.2s .4s var(--slow) both; }
+.page-head .eyebrow { grid-column: 1 / -1; color: var(--mid); }
+.page-head h1 { grid-column: 1 / span 8; font-family: var(--f-mark); font-size: var(--t-h1); line-height: .98; letter-spacing: -.01em; text-wrap: balance; }
+.page-head .lede { grid-column: 9 / span 4; max-width: 38ch; padding-bottom: .5em; }
+.page-head.long h1 { grid-column: 1 / span 10; font-size: clamp(2.1rem, 4.4vw, 4rem); line-height: 1.04; }
+.page-head.long .lede { grid-column: 1 / span 8; max-width: 60ch; }
+
+/* ---------- year-grouped lists ---------- */
+.year-block { padding-block: 28px; border-bottom: 1px solid var(--hair); align-items: start; }
+.year-block > .year { grid-column: 1 / span 2; font-family: var(--f-mark); font-size: var(--t-h2); line-height: 1; }
+.year-block > .rows { grid-column: 3 / -1; list-style: none; margin: 0; padding: 0; display: grid; }
+.row { padding-block: 14px; border-top: 1px solid var(--hair); display: grid; gap: 4px 24px; grid-template-columns: minmax(0, 1fr) auto; }
+.row:first-child { border-top: 0; padding-top: 2px; }
+.row .t { font-family: var(--f-mark); font-size: var(--t-h3); line-height: 1.25; text-wrap: balance; }
+.row .side { text-align: right; white-space: nowrap; color: var(--mid); }
+.row .sub { grid-column: 1 / -1; color: var(--mid); }
+
+/* ---------- metadata cartouche ---------- */
+.cartouche { margin: 0; display: grid; gap: 18px; align-content: start; }
+.cartouche dt { color: var(--mid); margin-bottom: 4px; }
+.cartouche dd { margin: 0; }
+.cartouche dd a { display: inline-block; }
+.links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+
+/* ---------- prose (Markdown bodies, abstracts) ---------- */
+.prose { font-size: var(--t-read); line-height: 1.7; max-width: 64ch; }
+.prose > * + * { margin-top: 1.1em; }
+.prose h2 { font-family: var(--f-mark); font-size: var(--t-h3); line-height: 1.25; margin-top: 2.2em; }
+.prose h3 { font-family: var(--f-ui); font-weight: 400; font-size: var(--t-caps); letter-spacing: .22em; text-transform: uppercase; color: var(--mid); margin-top: 2.2em; }
+.prose a { background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1px no-repeat; }
+.prose a:hover { background-size: 0 1px; transition: background-size .5s var(--ease); }
+.prose strong { font-weight: 500; }
+.prose ul, .prose ol { padding-left: 1.2em; }
+.prose li + li { margin-top: .35em; }
+.prose blockquote { margin: 0; padding-left: 1.2em; border-left: 1px solid var(--hair); color: var(--mid); }
+.prose .katex-display { margin: 1.4em 0; overflow-x: auto; overflow-y: hidden; padding-block: 4px; }
+.prose .katex { font-size: 1.06em; }
+
+/* ---------- small helpers ---------- */
+.button { display: inline-flex; align-items: center; gap: 12px; padding: 12px 18px; border: 1px solid var(--ink); transition: background-color .35s var(--ease), color .35s var(--ease); }
+.button:hover { background: var(--ink); color: var(--ground); }
+.status { color: var(--mid); }
+.status.published { color: var(--ink); }
+
+@media (max-width: 900px) {
+  .page-head h1, .page-head .lede, .page-head.long h1, .page-head.long .lede { grid-column: 1 / -1; }
+  .year-block > .year, .year-block > .rows { grid-column: 1 / -1; }
+  .year-block > .year { margin-bottom: 8px; }
+  .row { grid-template-columns: 1fr; }
+  .row .side { text-align: left; white-space: normal; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-delay: 0s !important; animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}
