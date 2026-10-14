@@ -1,9 +1,10 @@
 ---
-interface Props { eyebrow: string; title: string; lede?: string; long?: boolean }
+/** Inner page title. Eyebrow and lede are optional: the main index pages show the title alone. */
+interface Props { eyebrow?: string; title: string; lede?: string; long?: boolean }
 const { eyebrow, title, lede, long = false } = Astro.props;
 ---
 <header class:list={['page-head', 'grid', 'wrap', { long }]}>
-  <p class="eyebrow caps">{eyebrow}</p>
+  {eyebrow && <p class="eyebrow caps">{eyebrow}</p>}
   <h1 transition:name="page-title">{title}</h1>
   {lede && <p class="lede">{lede}</p>}
   <slot />

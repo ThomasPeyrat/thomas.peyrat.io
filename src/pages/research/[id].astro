@@ -15,12 +15,12 @@ const d = topic.data;
 const { Content } = await render(topic);
 const papers = (await getCollection('publications')).filter((p) => p.data.research.some((r) => r.id === topic.id)).sort(byRecency);
 ---
-<Base title={d.title} description={d.summary}>
+<Base title={d.title} description={d.summary || undefined}>
   <article>
     <header class="page-head long grid wrap">
       <p class="eyebrow caps"><a class="u" href={url('research/')}>Research</a> · {d.period.start}–{d.period.end ?? ''}</p>
       <h1 transition:name="page-title">{d.title}</h1>
-      <p class="lede">{d.summary}</p>
+      {d.summary && <p class="lede">{d.summary}</p>}
     </header>
     <div class="body wrap grid">
       <dl class="cartouche">

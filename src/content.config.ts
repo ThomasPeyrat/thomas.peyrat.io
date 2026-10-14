@@ -74,7 +74,7 @@ const research = defineCollection({
   loader: glob({ base: './src/content/research', pattern: '**/*.md' }),
   schema: z.object({
     title: z.string().min(1),
-    summary: z.string().min(1).max(260),            // shown on the index and as the page lede
+    summary: z.string().max(260).nullish(),         // shown on the index and as the page lede; may be left empty
     period: z.object({ start: z.number().int(), end: z.number().int().optional() }), // no end = ongoing
     collaborators: z.array(z.string()).default([]),
     order: z.number().int().default(100),           // smaller comes first on the index

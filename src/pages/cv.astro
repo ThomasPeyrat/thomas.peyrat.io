@@ -8,7 +8,7 @@ import { url } from '../lib/format';
 const sections = (await getCollection('cv')).sort((a, b) => a.data.order - b.data.order);
 ---
 <Base title="Curriculum vitae" description="Curriculum vitae of Thomas Peyrat.">
-  <PageHead eyebrow="Curriculum vitae" title="Curriculum vitae" lede="Positions, education and service. Publications, talks and teaching have their own pages.">
+  <PageHead title="Curriculum vitae">
     <p class="dl"><a class="button caps" href={url(site.cvPdf)}>Download the PDF <span aria-hidden="true">↓</span></a></p>
   </PageHead>
   <div class="wrap">
@@ -33,7 +33,7 @@ const sections = (await getCollection('cv')).sort((a, b) => a.data.order - b.dat
 </Base>
 
 <style>
-  .dl { grid-column: 9 / span 4; }
+  .dl { grid-column: 9 / span 4; justify-self: end; padding-bottom: .6em; }
   .year-block > .year { grid-column: 1 / span 3; font-size: clamp(1.5rem, 2vw, 1.875rem); line-height: 1.1; }
   .year-block > .rows { grid-column: 4 / -1; }
   .row.cv { grid-template-columns: 9rem minmax(0, 1fr); }
@@ -43,5 +43,6 @@ const sections = (await getCollection('cv')).sort((a, b) => a.data.order - b.dat
   @media (max-width: 900px) {
     .dl, .year-block > .year, .year-block > .rows { grid-column: 1 / -1; }
     .row.cv { grid-template-columns: 1fr; }
+    .dl { justify-self: start; }
   }
 </style>

@@ -10,7 +10,7 @@ const years = [...new Set(papers.map((p) => p.data.year))].sort((a, b) => b - a)
 const statuses = (['published', 'accepted', 'revision', 'submitted', 'preprint'] as const).filter((s) => papers.some((p) => p.data.status === s));
 ---
 <Base title="Publications" description="Papers and preprints by Thomas Peyrat, with abstracts and BibTeX.">
-  <PageHead eyebrow={`Index · ${papers.length} papers`} title="Publications" lede="Papers and preprints, newest first. Each entry opens on its abstract, links and BibTeX." />
+  <PageHead title="Publications" />
 
   <div class="wrap">
     <div class="filters caps" role="group" aria-label="Filter by status" hidden>

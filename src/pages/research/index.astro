@@ -9,7 +9,7 @@ const papers = await getCollection('publications');
 const count = (id: string) => papers.filter((p) => p.data.research.some((r) => r.id === id)).length;
 ---
 <Base title="Research" description="Research lines of Thomas Peyrat: self-exciting processes, Malliavin calculus on Poisson space, stress testing.">
-  <PageHead eyebrow={`Research · ${topics.length} lines of work`} title="Research" lede="Each line of work is told as a short case study: the question, the approach, and the papers." />
+  <PageHead title="Research" />
   <ol class="topics wrap">
     {topics.map((t) => (
       <li>
@@ -17,7 +17,7 @@ const count = (id: string) => papers.filter((p) => p.data.research.some((r) => r
           <span class="period caps mid">{t.data.period.start}–{t.data.period.end ?? ''}</span>
           <span class="body">
             <span class="title mark"><span class="u">{t.data.title}</span></span>
-            <span class="summary mid">{t.data.summary}</span>
+            {t.data.summary && <span class="summary mid">{t.data.summary}</span>}
           </span>
           <span class="meta caps mid">
             {t.data.collaborators.length > 0 && <span>With {coauthors(t.data.collaborators)}</span>}

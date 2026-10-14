@@ -7,10 +7,9 @@ import { monthShort, links } from '../lib/format';
 const talks = (await getCollection('talks')).sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
 const years = [...new Set(talks.map((t) => t.data.date.getUTCFullYear()))];
 const kind = { invited: 'Invited', contributed: 'Talk', seminar: 'Seminar', school: 'School', organiser: 'Organiser' } as const;
-const spoken = talks.filter((t) => t.data.kind !== 'organiser').length;
 ---
 <Base title="Talks" description="Conference talks and seminars by Thomas Peyrat.">
-  <PageHead eyebrow={`Talks · ${spoken} given`} title="Talks" lede="Conferences and seminars, newest first. Organised events are marked as such." />
+  <PageHead title="Talks" />
   <div class="wrap">
     {years.map((y) => (
       <section class="year-block grid" aria-labelledby={`t${y}`}>
