@@ -16,7 +16,7 @@ export const site = {
   summary:
     'Self-exciting point processes and stochastic analysis on Poisson space, with applications to cyber risk, insurance and generative AI for finance.',
 
-  email: 'thomas.peyrat@ensae.fr',
+  email: 'thomas.peyrat@polytechnique.edu',
   address: ['CMAP, École Polytechnique', '91120 Palaiseau'],
 
   profiles: {
